@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Budget Manager</title>
+    <style>
+        /* Visual styling inspired by the Apple ecosystem (iOS/iPadOS) */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f2f2f7; margin: 0; padding: 16px; color: #1c1c1e; }
+        .container { max-width: 600px; margin: 0 auto; }
+        h2 { text-align: center; font-size: 24px; margin-bottom: 20px; }
+        
+        /* Dashboard */
+        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .card { background: #ffffff; padding: 16px; border-radius: 14px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .card.balance { grid-column: span 2; background: #007aff; color: white; }
+        .card h3 { margin: 0 0 5px 0; font-size: 14px; font-weight: 500; opacity: 0.9; }
+        .card p { margin: 0; font-size: 24px; font-weight: bold; }
+        .text-green { color: #34c759; }
+        .text-red { color: #ff3b30; }
+
+        /* Form */
+        .form-section { background: #ffffff; padding: 16px; border-radius: 14px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        input, select, button { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #e5e5ea; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+        button { background: #007aff; color: white; border: none; font-weight: bold; padding: 14px; cursor: pointer; }
+        button:active { opacity: 0.8; }
+
+        /* Transaction List */
+        .list { list-style: none; padding: 0; margin: 0; }
+        .item { background: #ffffff; padding: 16px; border-radius: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .item-info h4 { margin: 0 0 4px 0; font-size: 16px; }
+        .item-info p { margin: 0; font-size: 12px; color: #8e8e93; }
+        .btn-delete { background: #ff3b30; width: auto; padding: 6px 12px; font-size: 12px; margin: 0 0 0 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>My Budget</h2>
+
+    <!-- Dashboard -->
+    <div class="dashboard">
+        <div class="card balance">
+            <h3>Current Balance</h3>
+            <p id="total-balance">$ 0.00</p>
+        </div>
+        <div class="card">
+            <h3>Income</h3>
+            <p id="total-income" class="text-green">$ 0.00</p>
+        </div>
+        <div class="card">
+            <h3>Expenses</h3>
+            <p id="total-expense" class="text-red">$ 0.00</p>
+        </div>
+    </div>
+
+    <!-- Transaction Form -->
+    <div class="form-section">
+        <form id="transaction-form">
+            <input type="text" id="description" placeholder="Description (e.g., Groceries)" required>
+            <input type="number" id="amount" placeholder="Amount ($)" step="0.01" required>
+            <select id="type">
+                <option value="income">Income (+)</option>
+                <option value="expense" selected>Expense (-)</option>
+            </select>
+            <select id="category">
+                <option value="Housing">Housing</option>
+                <option value="Food">Food</option>
+                <option value="Health">Health</option>
+                <option value="Leisure">Leisure</option>
+                <option value="Salary/Income">Salary/Income</option>
+            </select>
+            <button type="submit">Add Transaction</button>
+        </form>
+    </div>
+
+    <!-- History -->
+    <h3>Recent History</h3>
+    <ul id="transaction-list" class="list"></ul>
+</div>
+
+<script>
+    // Connect UI to local storage
+    const form = document.getElementById('transaction-form');
+    const transactionList = document.getElementById('transaction-list');
+    const balanceEl = document.getElementById('total-balance');
+    const incomeEl = document.getElementById('total-income');
+    const expenseEl = document.getElementById('total-expense');
+
+    // Load saved data or initialize empty array
+    let transactions = JSON.parse(localStorage.getItem('budget_data')) || [];
+
+    // Update UI totals and list
+    function updateInterface() {
+        transactionList.innerHTML = '';
+        let totalIncome = 0;
+        let totalExpense = 0;
+
+        transactions.forEach((t, index) => {
+            if (t.type === 'income') totalIncome += t.amount;
+            else totalExpense += t.amount;
+
+            const li = document.createElement('li');
+            li.classList.add('item');
+            li.innerHTML = `
+                <div class="item-info">
+                    <h4>${t.description}</h4>
+                    <p>${t.category}</p>
+                </div>
+                <div style="display: flex; align-items: center;">
+                    <span class="${t.type === 'income' ? 'text-green' : 'text-red'}">
+                        ${t.type === 'income' ? '+' : '-'}$ ${t.amount.toFixed(2)}
+                    </span>
+                    <button class="btn-delete" onclick="deleteTransaction(${index})">X</button>
+                </div>
+            `;
+            transactionList.appendChild(li);
+        });
+
+        const balance = totalIncome - totalExpense;
+        incomeEl.innerText = `$ ${totalIncome.toFixed(2)}`;
+        expenseEl.innerText = `$ ${totalExpense.toFixed(2)}`;
+        balanceEl.innerText = `$ ${balance.toFixed(2)}`;
+        
+        // Save to local storage
+        localStorage.setItem('budget_data', JSON.stringify(transactions));
+    }
+
+    // Add new transaction
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const transaction = {
+            description: document.getElementById('description').value,
+            amount: parseFloat(document.getElementById('amount').value),
+            type: document.getElementById('type').value,
+            category: document.getElementById('category').value,
+            date: new Date().toISOString()
+        };
+
+        transactions.push(transaction);
+        form.reset();
+        document.getElementById('amount').blur(); // Closes keyboard on mobile
+        updateInterface();
+    });
+
+    // Delete transaction
+    function deleteTransaction(index) {
+        transactions.splice(index, 1);
+        updateInterface();
+    }
+
+    // Initialize app
+    updateInterface();
+</script>
+
+</body>
+</html>
