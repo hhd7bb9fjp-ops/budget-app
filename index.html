@@ -127,6 +127,7 @@
 </nav>
 
 <script>
+    // 1. NAVEGAÇÃO
     window.switchTab = function(tabId, btnElement) {
         document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
@@ -135,6 +136,7 @@
         window.scrollTo(0, 0);
     };
 
+    // 2. FUNÇÕES DE DELETAR
     window.deleteTransaction = function(index) {
         transactions.splice(index, 1);
         updateDashboard();
@@ -145,12 +147,15 @@
         updatePlanning();
     };
 
+    // 3. CARREGADOR DE DADOS BLINDADO
     function safeLoad(key) {
         try {
             const data = localStorage.getItem(key);
-            return data ? JSON.parse(data) : [];
+            if (!data) return [];
+            const parsed = JSON.parse(data);
+            // Garante que o que voltou é uma lista válida, senão zera
+            return Array.isArray(parsed) ? parsed : [];
         } catch (error) {
-            console.warn("Resetando armazenamento corrompido.");
             return [];
         }
     }
@@ -158,6 +163,7 @@
     let transactions = safeLoad('budget_data');
     let planItems = safeLoad('budget_plan_data');
 
+    // 4. CATEGORIAS
     const categoriesHTML = `
         <optgroup label="Income">
             <option value="Salary / Wages">Salary / Wages</option>
@@ -201,3 +207,119 @@
             <option value="Investments">Investments</option>
             <option value="Courses & Education">Courses & Education</option>
         </optgroup>
+    `;
+
+    document.querySelectorAll('.category-select').forEach(select => {
+        select.innerHTML = categoriesHTML;
+    });
+
+    function setDefaultDate(id) {
+        const el = document.getElementById(id);
+        if (el) el.value = new Date().toISOString().split('T')[0];
+    }
+
+    // 5. RENDERIZADOR BLINDADO (Força a conversão para Número)
+    function createListItem(item, index, deleteFuncName, isIncome) {
+        const itemDate = item.date || 'No date';
+        const amountNumber = Number(item.amount) || 0; // Transforma qualquer lixo em zero
+        const amountFormatted = amountNumber.toFixed(2);
+        const sign = isIncome ? '+' : '-';
+        const cssClass = isIncome ? 'text-green' : 'text-red';
+        
+        return `
+            <li class="item">
+                <div class="item-info">
+                    <h4>${item.description}</h4>
+                    <p>${item.category} • ${itemDate}</p>
+                </div>
+                <div style="display: flex; align-items: center;">
+                    <span class="${cssClass}">
+                        ${sign}$ ${amountFormatted}
+                    </span>
+                    <button class="btn-delete" onclick="window.${deleteFuncName}(${index})">X</button>
+                </div>
+            </li>
+        `;
+    }
+
+    function updateDashboard() {
+        const listEl = document.getElementById('transaction-list');
+        listEl.innerHTML = '';
+        let totalInc = 0, totalExp = 0;
+
+        transactions.forEach((t, index) => {
+            const amt = Number(t.amount) || 0;
+            if (t.type === 'income') {
+                totalInc += amt;
+            } else {
+                totalExp += amt;
+            }
+            listEl.innerHTML += createListItem(t, index, 'deleteTransaction', t.type === 'income');
+        });
+
+        document.getElementById('total-income').innerText = `$ ${totalInc.toFixed(2)}`;
+        document.getElementById('total-expense').innerText = `$ ${totalExp.toFixed(2)}`;
+        document.getElementById('total-balance').innerText = `$ ${(totalInc - totalExp).toFixed(2)}`;
+        localStorage.setItem('budget_data', JSON.stringify(transactions));
+    }
+
+    function updatePlanning() {
+        const listEl = document.getElementById('plan-list');
+        listEl.innerHTML = '';
+        let totalPlanInc = 0, totalPlanExp = 0;
+
+        planItems.forEach((p, index) => {
+            const amt = Number(p.amount) || 0;
+            if (p.type === 'income') {
+                totalPlanInc += amt;
+            } else {
+                totalPlanExp += amt;
+            }
+            listEl.innerHTML += createListItem(p, index, 'deletePlanItem', p.type === 'income');
+        });
+
+        document.getElementById('plan-total-income').innerText = `$ ${totalPlanInc.toFixed(2)}`;
+        document.getElementById('plan-total-expense').innerText = `$ ${totalPlanExp.toFixed(2)}`;
+        document.getElementById('plan-total-balance').innerText = `$ ${(totalPlanInc - totalPlanExp).toFixed(2)}`;
+        localStorage.setItem('budget_plan_data', JSON.stringify(planItems));
+    }
+
+    // 6. EVENTOS DE SALVAR
+    document.getElementById('transaction-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        transactions.push({
+            date: document.getElementById('date').value,
+            description: document.getElementById('description').value,
+            amount: parseFloat(document.getElementById('amount').value) || 0,
+            type: document.getElementById('type').value,
+            category: document.getElementById('category').value
+        });
+        this.reset();
+        setDefaultDate('date');
+        document.getElementById('amount').blur();
+        updateDashboard();
+    });
+
+    document.getElementById('plan-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        planItems.push({
+            date: document.getElementById('plan-date').value,
+            description: document.getElementById('plan-description').value,
+            amount: parseFloat(document.getElementById('plan-amount').value) || 0,
+            type: document.getElementById('plan-type').value,
+            category: document.getElementById('plan-category').value
+        });
+        this.reset();
+        setDefaultDate('plan-date');
+        document.getElementById('plan-amount').blur();
+        updatePlanning();
+    });
+
+    // 7. INICIALIZAÇÃO
+    setDefaultDate('date');
+    setDefaultDate('plan-date');
+    updateDashboard();
+    updatePlanning();
+</script>
+</body>
+</html>
