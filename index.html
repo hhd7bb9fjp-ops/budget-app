@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Budget Manager v4.1</title>
+    <title>Budget Manager v4.4</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f2f2f7; margin: 0; padding: 16px; color: #1c1c1e; padding-bottom: 90px; }
         .container { max-width: 600px; margin: 0 auto; }
@@ -64,7 +64,7 @@
         .btn-edit { background: #ff9500; color: white; width: auto; padding: 6px 10px; font-size: 12px; margin: 0 0 0 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
         .btn-delete { background: #ff3b30; color: white; width: auto; padding: 6px 12px; font-size: 12px; margin: 0 0 0 6px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
 
-        /* CORREÇÃO DA BARRA INFERIOR PARA 4 ABAS */
+        /* BARRA INFERIOR */
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #ffffff; border-top: 1px solid #e5e5ea; display: flex; justify-content: space-between; padding: 8px 4px 20px 4px; z-index: 1000; box-sizing: border-box; }
         .nav-item { background: none; border: none; color: #8e8e93; font-size: 11px; font-weight: 600; display: flex; flex-direction: column; align-items: center; flex: 1; padding: 4px 0; cursor: pointer; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .nav-item.active { color: #007aff; }
@@ -194,6 +194,27 @@
     <!-- TELA 3: PLANNING -->
     <div id="view-planning" class="view">
         <h2>Monthly Plan</h2>
+
+        <!-- Filtro de Mês e Ano para o Planning -->
+        <div class="filter-section">
+            <select id="plan-filter-month" onchange="renderPlanning()">
+                <option value="01">January</option>
+                <option value="02">February</option>
+                <option value="03">March</option>
+                <option value="04">April</option>
+                <option value="05">May</option>
+                <option value="06">June</option>
+                <option value="07">July</option>
+                <option value="08">August</option>
+                <option value="09">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+            </select>
+            <select id="plan-filter-year" onchange="renderPlanning()">
+            </select>
+        </div>
+
         <div class="dashboard">
             <div class="card plan-balance">
                 <h3>Expected Balance</h3>
@@ -286,7 +307,7 @@
 
 </div>
 
-<!-- BARRA DE NAVEGAÇÃO OTIMIZADA PARA 4 ABAS -->
+<!-- BARRA DE NAVEGAÇÃO -->
 <nav class="bottom-nav">
     <button type="button" class="nav-item active" id="btn-nav-dash">
         <span>📊</span> Dashboard
@@ -315,13 +336,21 @@
     }
 
     const currentYearStr = new Date().getFullYear().toString();
+    const currentMonthStr = String(new Date().getMonth() + 1).padStart(2, '0');
+
+    // Popular Anos no Dashboard e no Planning
     const yearSelect = document.getElementById('filter-year');
+    const planYearSelect = document.getElementById('plan-filter-year');
     let yearOptionsHTML = '';
     for (let y = 2024; y <= 2030; y++) {
         yearOptionsHTML += `<option value="${y}" ${y.toString() === currentYearStr ? 'selected' : ''}>${y}</option>`;
     }
     yearSelect.innerHTML = yearOptionsHTML;
-    document.getElementById('filter-month').value = String(new Date().getMonth() + 1).padStart(2, '0');
+    planYearSelect.innerHTML = yearOptionsHTML;
+
+    // Selecionar mês atual nos filtros
+    document.getElementById('filter-month').value = currentMonthStr;
+    document.getElementById('plan-filter-month').value = currentMonthStr;
 
     let editingTxIndex = -1;
     let editingPlanIndex = -1;
@@ -376,13 +405,11 @@
             const [y, m] = p.date.split('-');
             const itemValue = parseInt(y) * 12 + parseInt(m);
             if (itemValue <= targetValue) {
-                map[p.category] = {
-                    category: p.category,
-                    type: p.type,
-                    amount: parseFloat(p.amount) || 0,
-                    description: p.description || '',
-                    date: p.date
-                };
+                if (!map[p.category]) {
+                    map[p.category] = { ...p, amount: parseFloat(p.amount) || 0 };
+                } else {
+                    map[p.category].amount += (parseFloat(p.amount) || 0);
+                }
             }
         });
         return Object.values(map);
@@ -532,6 +559,7 @@
         transactions.splice(index, 1);
         renderTransactions();
         renderHistory();
+        renderDashboard();
     };
 
     document.getElementById('transaction-form').addEventListener('submit', function(e) {
@@ -555,27 +583,37 @@
         document.getElementById('amount').blur();
         renderTransactions();
         renderHistory();
+        renderDashboard();
     });
 
-    // 3. PLANNING
+    // 3. PLANNING (COM FILTRO DE MÊS E ANO)
     function renderPlanning() {
+        const selMonth = document.getElementById('plan-filter-month').value;
+        const selYear = document.getElementById('plan-filter-year').value;
+
+        // Pega o planejamento efetivo calculado para aquele mês/ano específico
+        const effectiveList = getEffectivePlanForMonth(selYear, selMonth);
+
         const list = document.getElementById('plan-list');
         list.innerHTML = '';
         let inc = 0, exp = 0;
 
-        planItems.forEach((p, i) => {
+        effectiveList.forEach((p) => {
             const val = parseFloat(p.amount) || 0;
             if (p.type === 'income') inc += val; else exp += val;
 
             const noteText = (p.description && p.description.trim() !== '') ? (p.description + ' • ') : '';
+
+            // Encontra o índice real no array original de planItems para edição correta
+            const realIndex = planItems.findIndex(item => item.category === p.category && item.date === p.date);
 
             const li = document.createElement('li');
             li.className = 'item';
             li.innerHTML = '<div class="item-info"><h4>' + p.category + '</h4><p>' + noteText + p.date + '</p></div>' +
                            '<div class="action-buttons"><span class="' + (p.type === 'income' ? 'text-green' : 'text-red') + '">' +
                            (p.type === 'income' ? '+' : '-') + '$ ' + val.toFixed(2) + '</span>' +
-                           '<button class="btn-edit" onclick="editPlan(' + i + ')">Edit</button>' +
-                           '<button class="btn-delete" onclick="removePlan(' + i + ')">X</button></div>';
+                           '<button class="btn-edit" onclick="editPlanByCat(\'' + p.category + '\')">Edit</button>' +
+                           '<button class="btn-delete" onclick="removePlanByCat(\'' + p.category + '\')">X</button></div>';
             list.appendChild(li);
         });
 
@@ -583,6 +621,23 @@
         document.getElementById('plan-total-expense').innerText = '$ ' + exp.toFixed(2);
         document.getElementById('plan-total-balance').innerText = '$ ' + (inc - exp).toFixed(2);
         localStorage.setItem('app_plan_v2', JSON.stringify(planItems));
+    }
+
+    window.editPlanByCat = function(categoryName) {
+        const index = planItems.findIndex(item => item.category === categoryName);
+        if (index > -1) {
+            editPlan(index);
+        }
+    }
+
+    window.removePlanByCat = function(categoryName) {
+        const index = planItems.findIndex(item => item.category === categoryName);
+        if (index > -1) {
+            if (editingPlanIndex === index) cancelEditPlan();
+            planItems.splice(index, 1);
+            renderPlanning();
+            renderDashboard();
+        }
     }
 
     window.editPlan = function(index) {
@@ -598,7 +653,6 @@
         submitBtn.innerText = 'Update Plan Item';
         submitBtn.classList.add('btn-warning');
         document.getElementById('btn-cancel-plan').style.display = 'block';
-        switchView('plan');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -610,13 +664,6 @@
         submitBtn.innerText = 'Add to Plan';
         submitBtn.classList.remove('btn-warning');
         document.getElementById('btn-cancel-plan').style.display = 'none';
-    };
-
-    window.removePlan = function(index) {
-        if (editingPlanIndex === index) cancelEditPlan();
-        else if (editingPlanIndex > index) editingPlanIndex--;
-        planItems.splice(index, 1);
-        renderPlanning();
     };
 
     document.getElementById('plan-form').addEventListener('submit', function(e) {
@@ -640,6 +687,7 @@
         document.getElementById('plan-amount').blur();
         document.getElementById('plan-description').blur();
         renderPlanning();
+        renderDashboard();
     });
 
     // 4. HISTORY
