@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Budget Manager v2</title>
+    <title>Budget Manager v3.0</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f2f2f7; margin: 0; padding: 16px; color: #1c1c1e; padding-bottom: 90px; }
         .container { max-width: 600px; margin: 0 auto; }
@@ -16,47 +16,115 @@
         .card { background: #ffffff; padding: 16px; border-radius: 14px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         .card.balance { grid-column: span 2; background: #007aff; color: white; }
         .card.plan-balance { grid-column: span 2; background: #5856d6; color: white; }
+        .card.dash-balance { grid-column: span 2; background: #34c759; color: white; }
         .card h3 { margin: 0 0 5px 0; font-size: 14px; font-weight: 500; opacity: 0.9; }
         .card p { margin: 0; font-size: 24px; font-weight: bold; }
         .text-green { color: #34c759; }
         .text-red { color: #ff3b30; }
 
-        .form-section { background: #ffffff; padding: 16px; border-radius: 14px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-        input, select, button { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #e5e5ea; border-radius: 10px; font-size: 16px; box-sizing: border-box; background-color: #ffffff; }
+        .filter-section { background: #ffffff; padding: 12px 16px; border-radius: 14px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; gap: 10px; }
+        .filter-section select { margin-bottom: 0; }
+
+        /* Gráfico de Barras Verticais */
+        .chart-container { background: #ffffff; padding: 16px; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 20px; }
+        .chart-category-block { margin-bottom: 16px; border-bottom: 1px solid #f2f2f7; padding-bottom: 12px; }
+        .chart-category-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; display: flex; justify-content: space-between; }
+        .bars-wrapper { display: flex; align-items: flex-end; height: 120px; gap: 12px; padding-top: 20px; border-bottom: 2px solid #e5e5ea; }
+        .bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
+        .bar { width: 100%; max-width: 40px; border-radius: 6px 6px 0 0; transition: height 0.3s ease; position: relative; }
+        .bar-planned { background-color: #5856d6; }
+        .bar-actual { background-color: #007aff; }
+        .bar-label { font-size: 11px; color: #8e8e93; margin-top: 4px; text-align: center; }
+        .bar-value { font-size: 10px; font-weight: bold; position: absolute; top: -16px; width: 100%; text-align: center; color: #3a3a3c; }
+
+        .form-section { background: #ffffff; padding: 16px; border-radius: 14px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden; }
+        input, select, button { width: 100%; max-width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #e5e5ea; border-radius: 10px; font-size: 16px; box-sizing: border-box; background-color: #ffffff; display: block; }
+        input[type="date"] { -webkit-appearance: none; appearance: none; min-width: 0; }
         .btn-primary { background: #007aff; color: white; border: none; font-weight: bold; padding: 14px; cursor: pointer; }
         .btn-plan { background: #5856d6; color: white; border: none; font-weight: bold; padding: 14px; cursor: pointer; }
+        .btn-warning { background: #ff9500 !important; color: white; }
+        .btn-cancel { background: #8e8e93; color: white; border: none; font-weight: bold; padding: 12px; cursor: pointer; display: none; margin-bottom: 0; }
         optgroup { font-weight: bold; color: #8e8e93; }
 
         .list { list-style: none; padding: 0; margin: 0; }
         .item { background: #ffffff; padding: 16px; border-radius: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         .item-info h4 { margin: 0 0 4px 0; font-size: 16px; }
         .item-info p { margin: 0; font-size: 12px; color: #8e8e93; }
-        .btn-delete { background: #ff3b30; color: white; width: auto; padding: 6px 12px; font-size: 12px; margin: 0 0 0 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
+        .action-buttons { display: flex; align-items: center; }
+        .btn-edit { background: #ff9500; color: white; width: auto; padding: 6px 10px; font-size: 12px; margin: 0 0 0 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-delete { background: #ff3b30; color: white; width: auto; padding: 6px 12px; font-size: 12px; margin: 0 0 0 6px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
 
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #ffffff; border-top: 1px solid #e5e5ea; display: flex; justify-content: space-around; padding: 10px 0 20px 0; z-index: 1000; }
-        .nav-item { background: none; border: none; color: #8e8e93; font-size: 14px; font-weight: 600; display: flex; flex-direction: column; align-items: center; width: 50%; padding: 8px 0; cursor: pointer; margin: 0; }
+        .nav-item { background: none; border: none; color: #8e8e93; font-size: 13px; font-weight: 600; display: flex; flex-direction: column; align-items: center; width: 33.33%; padding: 4px 0; cursor: pointer; margin: 0; }
         .nav-item.active { color: #007aff; }
-        .nav-item span { font-size: 20px; margin-bottom: 4px; }
+        .nav-item span { font-size: 18px; margin-bottom: 2px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     
-    <!-- TELA 1: DASHBOARD -->
+    <!-- TELA 1: DASHBOARD (NOVA ABA DE RESUMO E GRÁFICOS) -->
     <div id="view-dashboard" class="view active">
-        <h2>Dashboard v2.0</h2>
+        <h2>Dashboard v3.0</h2>
+        
+        <!-- Filtros de Mês e Ano -->
+        <div class="filter-section">
+            <select id="filter-month" onchange="renderDashboard()">
+                <option value="ALL">All Months (Year)</option>
+                <option value="01">January</option>
+                <option value="02">February</option>
+                <option value="03">March</option>
+                <option value="04">April</option>
+                <option value="05">May</option>
+                <option value="06">June</option>
+                <option value="07">July</option>
+                <option value="08">August</option>
+                <option value="09">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+            </select>
+            <select id="filter-year" onchange="renderDashboard()">
+                <!-- Preenchido via JS -->
+            </select>
+        </div>
+
+        <div class="dashboard">
+            <div class="card dash-balance">
+                <h3>Net Balance (Actual vs Expected)</h3>
+                <p id="dash-net-balance">$ 0.00</p>
+            </div>
+            <div class="card">
+                <h3>Actual Income</h3>
+                <p id="dash-actual-inc" class="text-green">$ 0.00</p>
+            </div>
+            <div class="card">
+                <h3>Actual Expenses</h3>
+                <p id="dash-actual-exp" class="text-red">$ 0.00</p>
+            </div>
+        </div>
+
+        <h3>Planned vs Actual by Category</h3>
+        <div class="chart-container" id="chart-area">
+            <!-- Gráfico injetado via JS -->
+        </div>
+    </div>
+
+    <!-- TELA 2: TRANSACTIONS -->
+    <div id="view-transactions" class="view">
+        <h2>Transactions</h2>
         <div class="dashboard">
             <div class="card balance">
                 <h3>Current Balance</h3>
                 <p id="total-balance">$ 0.00</p>
             </div>
             <div class="card">
-                <h3>Income</h3>
+                <h3>Actual Income</h3>
                 <p id="total-income" class="text-green">$ 0.00</p>
             </div>
             <div class="card">
-                <h3>Expenses</h3>
+                <h3>Actual Expenses</h3>
                 <p id="total-expense" class="text-red">$ 0.00</p>
             </div>
         </div>
@@ -74,12 +142,14 @@
                     <optgroup label="Income">
                         <option value="Salary / Wages">Salary / Wages</option>
                         <option value="Side Hustle / Freelance">Side Hustle / Freelance</option>
+                        <option value="Returns / Dividends">Returns / Dividends</option>
                         <option value="Other Income">Other Income</option>
                     </optgroup>
                     <optgroup label="Housing & Utilities">
                         <option value="Rent / Mortgage">Rent / Mortgage</option>
                         <option value="Utilities">Utilities (Water, Gas, Power)</option>
                         <option value="Internet & Phone">Internet & Phone</option>
+                        <option value="Home Maintenance">Home Maintenance</option>
                     </optgroup>
                     <optgroup label="Food & Dining">
                         <option value="Groceries">Groceries</option>
@@ -92,16 +162,21 @@
                     <optgroup label="Health & Lifestyle">
                         <option value="Medical & Pharmacy">Medical & Pharmacy</option>
                         <option value="Gym & Fitness">Gym & Fitness</option>
+                        <option value="Personal Care">Personal Care</option>
                         <option value="Subscriptions">Subscriptions & Streaming</option>
                         <option value="Shopping & Entertainment">Shopping & Entertainment</option>
+                        <option value="Travel">Travel</option>
                     </optgroup>
                     <optgroup label="Savings & Obligations">
+                        <option value="Insurance">Insurance (Auto, Home, Life)</option>
                         <option value="Debt & Loans">Debt & Loans</option>
+                        <option value="Taxes">Taxes</option>
                         <option value="Emergency Fund & Investments">Savings & Investments</option>
                         <option value="Education">Courses & Education</option>
                     </optgroup>
                 </select>
-                <button type="submit" class="btn-primary">Add Transaction</button>
+                <button type="submit" id="btn-submit-tx" class="btn-primary">Add Transaction</button>
+                <button type="button" id="btn-cancel-tx" class="btn-cancel" onclick="cancelEditTx()">Cancel Edit</button>
             </form>
         </div>
 
@@ -109,9 +184,9 @@
         <ul id="transaction-list" class="list"></ul>
     </div>
 
-    <!-- TELA 2: PLANNING -->
+    <!-- TELA 3: PLANNING -->
     <div id="view-planning" class="view">
-        <h2>Monthly Plan v2.0</h2>
+        <h2>Monthly Plan</h2>
         <div class="dashboard">
             <div class="card plan-balance">
                 <h3>Expected Balance</h3>
@@ -130,22 +205,12 @@
         <div class="form-section">
             <form id="plan-form">
                 <input type="date" id="plan-date" required>
-                <input type="text" id="plan-description" placeholder="Planned Item (e.g., Rent)" required>
-                <input type="number" id="plan-amount" placeholder="Expected Amount ($)" step="0.01" required>
-                <select id="plan-type">
-                    <option value="expense" selected>Expense (-)</option>
-                    <option value="income">Income (+)</option>
-                </select>
                 <select id="plan-category">
-                    <optgroup label="Income">
-                        <option value="Salary / Wages">Salary / Wages</option>
-                        <option value="Side Hustle / Freelance">Side Hustle / Freelance</option>
-                        <option value="Other Income">Other Income</option>
-                    </optgroup>
                     <optgroup label="Housing & Utilities">
                         <option value="Rent / Mortgage">Rent / Mortgage</option>
                         <option value="Utilities">Utilities (Water, Gas, Power)</option>
                         <option value="Internet & Phone">Internet & Phone</option>
+                        <option value="Home Maintenance">Home Maintenance</option>
                     </optgroup>
                     <optgroup label="Food & Dining">
                         <option value="Groceries">Groceries</option>
@@ -158,16 +223,33 @@
                     <optgroup label="Health & Lifestyle">
                         <option value="Medical & Pharmacy">Medical & Pharmacy</option>
                         <option value="Gym & Fitness">Gym & Fitness</option>
+                        <option value="Personal Care">Personal Care</option>
                         <option value="Subscriptions">Subscriptions & Streaming</option>
                         <option value="Shopping & Entertainment">Shopping & Entertainment</option>
+                        <option value="Travel">Travel</option>
                     </optgroup>
                     <optgroup label="Savings & Obligations">
+                        <option value="Insurance">Insurance (Auto, Home, Life)</option>
                         <option value="Debt & Loans">Debt & Loans</option>
+                        <option value="Taxes">Taxes</option>
                         <option value="Emergency Fund & Investments">Savings & Investments</option>
                         <option value="Education">Courses & Education</option>
                     </optgroup>
+                    <optgroup label="Income">
+                        <option value="Salary / Wages">Salary / Wages</option>
+                        <option value="Side Hustle / Freelance">Side Hustle / Freelance</option>
+                        <option value="Returns / Dividends">Returns / Dividends</option>
+                        <option value="Other Income">Other Income</option>
+                    </optgroup>
                 </select>
-                <button type="submit" class="btn-plan">Add to Plan</button>
+                <select id="plan-type">
+                    <option value="expense" selected>Expense (-)</option>
+                    <option value="income">Income (+)</option>
+                </select>
+                <input type="number" id="plan-amount" placeholder="Expected Amount ($)" step="0.01" required>
+                <input type="text" id="plan-description" placeholder="Optional Note (e.g., Aldi / Costco)">
+                <button type="submit" id="btn-submit-plan" class="btn-plan">Add to Plan</button>
+                <button type="button" id="btn-cancel-plan" class="btn-cancel" onclick="cancelEditPlan()">Cancel Edit</button>
             </form>
         </div>
 
@@ -177,10 +259,13 @@
 
 </div>
 
-<!-- BARRA DE NAVEGAÇÃO -->
+<!-- BARRA DE NAVEGAÇÃO COM 3 ABAS -->
 <nav class="bottom-nav">
     <button type="button" class="nav-item active" id="btn-nav-dash">
         <span>📊</span> Dashboard
+    </button>
+    <button type="button" class="nav-item" id="btn-nav-trans">
+        <span>💳</span> Transactions
     </button>
     <button type="button" class="nav-item" id="btn-nav-plan">
         <span>📋</span> Planning
@@ -188,56 +273,181 @@
 </nav>
 
 <script>
-    // 1. NAVEGAÇÃO DIRETA E SIMPLES
+    // 1. DATA LOCAL
+    function getTodayLocal() {
+        const d = new Date();
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    function refreshDefaultDates() {
+        const today = getTodayLocal();
+        if (editingTxIndex === -1) document.getElementById('date').value = today;
+        if (editingPlanIndex === -1) document.getElementById('plan-date').value = today;
+    }
+
+    // Inicializar Anos no Filtro
+    const currentYearStr = new Date().getFullYear().toString();
+    const yearSelect = document.getElementById('filter-year');
+    let yearOptionsHTML = '';
+    for (let y = 2024; y <= 2030; y++) {
+        yearOptionsHTML += `<option value="${y}" ${y.toString() === currentYearStr ? 'selected' : ''}>${y}</option>`;
+    }
+    yearSelect.innerHTML = yearOptionsHTML;
+
+    // Selecionar mês atual como padrão no filtro
+    document.getElementById('filter-month').value = String(new Date().getMonth() + 1).padStart(2, '0');
+
+    // 2. NAVEGAÇÃO
+    let editingTxIndex = -1;
+    let editingPlanIndex = -1;
+
     const viewDash = document.getElementById('view-dashboard');
+    const viewTrans = document.getElementById('view-transactions');
     const viewPlan = document.getElementById('view-planning');
     const btnDash = document.getElementById('btn-nav-dash');
+    const btnTrans = document.getElementById('btn-nav-trans');
     const btnPlan = document.getElementById('btn-nav-plan');
 
-    btnDash.addEventListener('click', function() {
-        viewPlan.classList.remove('active');
-        btnPlan.classList.remove('active');
-        viewDash.classList.add('active');
-        btnDash.classList.add('active');
-        window.scrollTo(0, 0);
-    });
-
-    btnPlan.addEventListener('click', function() {
+    function switchView(target) {
         viewDash.classList.remove('active');
+        viewTrans.classList.remove('active');
+        viewPlan.classList.remove('active');
         btnDash.classList.remove('active');
-        viewPlan.classList.add('active');
-        btnPlan.classList.add('active');
+        btnTrans.classList.remove('active');
+        btnPlan.classList.remove('active');
+
+        if(target === 'dash') { viewDash.classList.add('active'); btnDash.classList.add('active'); renderDashboard(); }
+        if(target === 'trans') { viewTrans.classList.add('active'); btnTrans.classList.add('active'); }
+        if(target === 'plan') { viewPlan.classList.add('active'); btnPlan.classList.add('active'); }
+        refreshDefaultDates();
         window.scrollTo(0, 0);
-    });
+    }
 
-    // 2. DATAS PADRÃO
-    const todayStr = new Date().toISOString().split('T')[0];
-    document.getElementById('date').value = todayStr;
-    document.getElementById('plan-date').value = todayStr;
+    btnDash.addEventListener('click', () => switchView('dash'));
+    btnTrans.addEventListener('click', () => switchView('trans'));
+    btnPlan.addEventListener('click', () => switchView('plan'));
 
-    // 3. BANCO DE DADOS LOCAL (NOVAS CHAVES PARA EVITAR DADOS CORROMPIDOS ANTIGOS)
+    window.addEventListener('focus', refreshDefaultDates);
+
+    // 3. STORAGE
     let transactions = JSON.parse(localStorage.getItem('app_transactions_v2')) || [];
     let planItems = JSON.parse(localStorage.getItem('app_plan_v2')) || [];
 
-    // 4. ATUALIZAR DASHBOARD
+    // 4. DASHBOARD & GRÁFICO
     function renderDashboard() {
+        const selectedMonth = document.getElementById('filter-month').value;
+        const selectedYear = document.getElementById('filter-year').value;
+
+        // Filtrar transações reais
+        const filteredTx = transactions.filter(t => {
+            if (!t.date) return false;
+            const [y, m] = t.date.split('-');
+            if (y !== selectedYear) return false;
+            if (selectedMonth !== 'ALL' && m !== selectedMonth) return false;
+            return true;
+        });
+
+        // Filtrar planejamento
+        const filteredPlan = planItems.items ? [] : planItems.filter(p => {
+            if (!p.date) return false;
+            const [y, m] = p.date.split('-');
+            if (y !== selectedYear) return false;
+            if (selectedMonth !== 'ALL' && m !== selectedMonth) return false;
+            return true;
+        });
+
+        let actInc = 0, actExp = 0;
+        filteredTx.forEach(t => {
+            const v = parseFloat(t.amount) || 0;
+            if (t.type === 'income') actInc += v; else actExp += v;
+        });
+
+        let planInc = 0, planExp = 0;
+        filteredPlan.forEach(p => {
+            const v = parseFloat(p.amount) || 0;
+            if (p.type === 'income') planInc += v; else planExp += v;
+        });
+
+        document.getElementById('dash-actual-inc').innerText = '$ ' + actInc.toFixed(2);
+        document.getElementById('dash-actual-exp').innerText = '$ ' + actExp.toFixed(2);
+        const netActual = actInc - actExp;
+        const netPlan = planInc - planExp;
+        const netEl = document.getElementById('dash-net-balance');
+        netEl.innerText = '$ ' + netActual.toFixed(2) + ' (Exp: $' + netPlan.toFixed(2) + ')';
+
+        // Consolidar por categoria para o gráfico
+        const categoryMap = {};
+        
+        filteredPlan.forEach(p => {
+            if (!categoryMap[p.category]) categoryMap[p.category] = { planned: 0, actual: 0 };
+            categoryMap[p.category].planned += (parseFloat(p.amount) || 0);
+        });
+
+        filteredTx.forEach(t => {
+            if (!categoryMap[t.category]) categoryMap[t.category] = { planned: 0, actual: 0 };
+            categoryMap[t.category].actual += (parseFloat(t.amount) || 0);
+        });
+
+        const chartArea = document.getElementById('chart-area');
+        chartArea.innerHTML = '';
+
+        const categories = Object.keys(categoryMap);
+        if (categories.length === 0) {
+            chartArea.innerHTML = '<p style="text-align:center;color:#8e8e93;margin:20px 0;">No data for this period.</p>';
+            return;
+        }
+
+        categories.forEach(cat => {
+            const data = categoryMap[cat];
+            const maxVal = Math.max(data.planned, data.actual, 10); // Evitar divisão por zero
+            const planHeight = Math.round((data.planned / maxVal) * 100);
+            const actHeight = Math.round((data.actual / maxVal) * 100);
+
+            const block = document.createElement('div');
+            block.className = 'chart-category-block';
+            block.innerHTML = `
+                <div class="chart-category-title">
+                    <span>${cat}</span>
+                    <span style="font-size:12px;color:#8e8e93;">Plan: $${data.planned.toFixed(0)} | Act: $${data.actual.toFixed(0)}</span>
+                </div>
+                <div class="bars-wrapper">
+                    <div class="bar-group">
+                        <div class="bar bar-planned" style="height: ${planHeight}%;">
+                            <span class="bar-value">$${data.planned.toFixed(0)}</span>
+                        </div>
+                        <span class="bar-label">Planned</span>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar bar-actual" style="height: ${actHeight}%;">
+                            <span class="bar-value">$${data.actual.toFixed(0)}</span>
+                        </div>
+                        <span class="bar-label">Actual</span>
+                    </div>
+                </div>
+            `;
+            chartArea.appendChild(block);
+        });
+    }
+
+    // 5. TRANSACTIONS RENDER
+    function renderTransactions() {
         const list = document.getElementById('transaction-list');
         list.innerHTML = '';
         let inc = 0, exp = 0;
 
-        for (let i = 0; i < transactions.length; i++) {
-            const t = transactions[i];
+        transactions.forEach((t, i) => {
             const val = parseFloat(t.amount) || 0;
             if (t.type === 'income') inc += val; else exp += val;
 
             const li = document.createElement('li');
             li.className = 'item';
             li.innerHTML = '<div class="item-info"><h4>' + t.description + '</h4><p>' + t.category + ' • ' + t.date + '</p></div>' +
-                           '<div style="display:flex;align-items:center;"><span class="' + (t.type === 'income' ? 'text-green' : 'text-red') + '">' +
+                           '<div class="action-buttons"><span class="' + (t.type === 'income' ? 'text-green' : 'text-red') + '">' +
                            (t.type === 'income' ? '+' : '-') + '$ ' + val.toFixed(2) + '</span>' +
+                           '<button class="btn-edit" onclick="editTx(' + i + ')">Edit</button>' +
                            '<button class="btn-delete" onclick="removeTx(' + i + ')">X</button></div>';
             list.appendChild(li);
-        }
+        });
 
         document.getElementById('total-income').innerText = '$ ' + inc.toFixed(2);
         document.getElementById('total-expense').innerText = '$ ' + exp.toFixed(2);
@@ -245,44 +455,85 @@
         localStorage.setItem('app_transactions_v2', JSON.stringify(transactions));
     }
 
+    window.editTx = function(index) {
+        const t = transactions[index];
+        document.getElementById('date').value = t.date;
+        document.getElementById('description').value = t.description;
+        document.getElementById('amount').value = t.amount;
+        document.getElementById('type').value = t.type;
+        document.getElementById('category').value = t.category;
+
+        editingTxIndex = index;
+        const submitBtn = document.getElementById('btn-submit-tx');
+        submitBtn.innerText = 'Update Transaction';
+        submitBtn.classList.add('btn-warning');
+        document.getElementById('btn-cancel-tx').style.display = 'block';
+        switchView('trans');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.cancelEditTx = function() {
+        editingTxIndex = -1;
+        document.getElementById('transaction-form').reset();
+        document.getElementById('date').value = getTodayLocal();
+        const submitBtn = document.getElementById('btn-submit-tx');
+        submitBtn.innerText = 'Add Transaction';
+        submitBtn.classList.remove('btn-warning');
+        document.getElementById('btn-cancel-tx').style.display = 'none';
+    };
+
     window.removeTx = function(index) {
+        if (editingTxIndex === index) cancelEditTx();
+        else if (editingTxIndex > index) editingTxIndex--;
         transactions.splice(index, 1);
+        renderTransactions();
         renderDashboard();
     };
 
     document.getElementById('transaction-form').addEventListener('submit', function(e) {
         e.preventDefault();
-        transactions.push({
-            date: document.getElementById('date').value,
+        const itemData = {
+            date: document.getElementById('date').value || getTodayLocal(),
             description: document.getElementById('description').value,
             amount: parseFloat(document.getElementById('amount').value) || 0,
             type: document.getElementById('type').value,
             category: document.getElementById('category').value
-        });
-        this.reset();
-        document.getElementById('date').value = todayStr;
+        };
+
+        if (editingTxIndex > -1) {
+            transactions[editingTxIndex] = itemData;
+            cancelEditTx();
+        } else {
+            transactions.push(itemData);
+            this.reset();
+            document.getElementById('date').value = getTodayLocal();
+        }
+        document.getElementById('amount').blur();
+        renderTransactions();
         renderDashboard();
     });
 
-    // 5. ATUALIZAR PLANEJAMENTO
+    // 6. PLANNING RENDER
     function renderPlanning() {
         const list = document.getElementById('plan-list');
         list.innerHTML = '';
         let inc = 0, exp = 0;
 
-        for (let i = 0; i < planItems.length; i++) {
-            const p = planItems[i];
+        planItems.forEach((p, i) => {
             const val = parseFloat(p.amount) || 0;
             if (p.type === 'income') inc += val; else exp += val;
 
+            const noteText = (p.description && p.description.trim() !== '') ? (p.description + ' • ') : '';
+
             const li = document.createElement('li');
             li.className = 'item';
-            li.innerHTML = '<div class="item-info"><h4>' + p.description + '</h4><p>' + p.category + ' • ' + p.date + '</p></div>' +
-                           '<div style="display:flex;align-items:center;"><span class="' + (p.type === 'income' ? 'text-green' : 'text-red') + '">' +
+            li.innerHTML = '<div class="item-info"><h4>' + p.category + '</h4><p>' + noteText + p.date + '</p></div>' +
+                           '<div class="action-buttons"><span class="' + (p.type === 'income' ? 'text-green' : 'text-red') + '">' +
                            (p.type === 'income' ? '+' : '-') + '$ ' + val.toFixed(2) + '</span>' +
+                           '<button class="btn-edit" onclick="editPlan(' + i + ')">Edit</button>' +
                            '<button class="btn-delete" onclick="removePlan(' + i + ')">X</button></div>';
             list.appendChild(li);
-        }
+        });
 
         document.getElementById('plan-total-income').innerText = '$ ' + inc.toFixed(2);
         document.getElementById('plan-total-expense').innerText = '$ ' + exp.toFixed(2);
@@ -290,28 +541,70 @@
         localStorage.setItem('app_plan_v2', JSON.stringify(planItems));
     }
 
+    window.editPlan = function(index) {
+        const p = planItems[index];
+        document.getElementById('plan-date').value = p.date;
+        document.getElementById('plan-category').value = p.category;
+        document.getElementById('plan-type').value = p.type;
+        document.getElementById('plan-amount').value = p.amount;
+        document.getElementById('plan-description').value = p.description || '';
+
+        editingPlanIndex = index;
+        const submitBtn = document.getElementById('btn-submit-plan');
+        submitBtn.innerText = 'Update Plan Item';
+        submitBtn.classList.add('btn-warning');
+        document.getElementById('btn-cancel-plan').style.display = 'block';
+        switchView('plan');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.cancelEditPlan = function() {
+        editingPlanIndex = -1;
+        document.getElementById('plan-form').reset();
+        document.getElementById('plan-date').value = getTodayLocal();
+        const submitBtn = document.getElementById('btn-submit-plan');
+        submitBtn.innerText = 'Add to Plan';
+        submitBtn.classList.remove('btn-warning');
+        document.getElementById('btn-cancel-plan').style.display = 'none';
+    };
+
     window.removePlan = function(index) {
+        if (editingPlanIndex === index) cancelEditPlan();
+        else if (editingPlanIndex > index) editingPlanIndex--;
         planItems.splice(index, 1);
         renderPlanning();
+        renderDashboard();
     };
 
     document.getElementById('plan-form').addEventListener('submit', function(e) {
         e.preventDefault();
-        planItems.push({
-            date: document.getElementById('plan-date').value,
-            description: document.getElementById('plan-description').value,
-            amount: parseFloat(document.getElementById('plan-amount').value) || 0,
+        const itemData = {
+            date: document.getElementById('plan-date').value || getTodayLocal(),
+            category: document.getElementById('plan-category').value,
             type: document.getElementById('plan-type').value,
-            category: document.getElementById('plan-category').value
-        });
-        this.reset();
-        document.getElementById('plan-date').value = todayStr;
+            amount: parseFloat(document.getElementById('plan-amount').value) || 0,
+            description: document.getElementById('plan-description').value.trim()
+        };
+
+        if (editingPlanIndex > -1) {
+            planItems[editingPlanIndex] = itemData;
+            cancelEditPlan();
+        } else {
+            planItems.push(itemData);
+            this.reset();
+            document.getElementById('plan-date').value = getTodayLocal();
+        }
+        document.getElementById('plan-amount').blur();
+        document.getElementById('plan-description').blur();
         renderPlanning();
+        renderDashboard();
     });
 
     // INICIAR
-    renderDashboard();
+    refreshDefaultDates();
+    renderTransactions();
     renderPlanning();
+    renderDashboard();
 </script>
 </body>
 </html>
