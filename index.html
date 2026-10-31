@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Budget Manager v4.0</title>
+    <title>Budget Manager v4.1</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f2f2f7; margin: 0; padding: 16px; color: #1c1c1e; padding-bottom: 90px; }
         .container { max-width: 600px; margin: 0 auto; }
@@ -64,8 +64,9 @@
         .btn-edit { background: #ff9500; color: white; width: auto; padding: 6px 10px; font-size: 12px; margin: 0 0 0 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
         .btn-delete { background: #ff3b30; color: white; width: auto; padding: 6px 12px; font-size: 12px; margin: 0 0 0 6px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
 
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #ffffff; border-top: 1px solid #e5e5ea; display: flex; justify-content: space-around; padding: 10px 0 20px 0; z-index: 1000; }
-        .nav-item { background: none; border: none; color: #8e8e93; font-size: 12px; font-weight: 600; display: flex; flex-direction: column; align-items: center; width: 25%; padding: 4px 0; cursor: pointer; margin: 0; }
+        /* CORREÇÃO DA BARRA INFERIOR PARA 4 ABAS */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #ffffff; border-top: 1px solid #e5e5ea; display: flex; justify-content: space-between; padding: 8px 4px 20px 4px; z-index: 1000; box-sizing: border-box; }
+        .nav-item { background: none; border: none; color: #8e8e93; font-size: 11px; font-weight: 600; display: flex; flex-direction: column; align-items: center; flex: 1; padding: 4px 0; cursor: pointer; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .nav-item.active { color: #007aff; }
         .nav-item span { font-size: 18px; margin-bottom: 2px; }
     </style>
@@ -263,7 +264,7 @@
         <ul id="plan-list" class="list"></ul>
     </div>
 
-    <!-- TELA 4: HISTORY (NOVA ABA ESTILO EXCEL) -->
+    <!-- TELA 4: HISTORY -->
     <div id="view-history" class="view">
         <h2>Transactions History</h2>
         <div class="excel-table-container">
@@ -278,7 +279,6 @@
                     </tr>
                 </thead>
                 <tbody id="history-table-body">
-                    <!-- Preenchido via JS -->
                 </tbody>
             </table>
         </div>
@@ -286,13 +286,13 @@
 
 </div>
 
-<!-- BARRA DE NAVEGAÇÃO COM 4 ABAS -->
+<!-- BARRA DE NAVEGAÇÃO OTIMIZADA PARA 4 ABAS -->
 <nav class="bottom-nav">
     <button type="button" class="nav-item active" id="btn-nav-dash">
         <span>📊</span> Dashboard
     </button>
     <button type="button" class="nav-item" id="btn-nav-trans">
-        <span>💳</span> Transactions
+        <span>💳</span> Trans.
     </button>
     <button type="button" class="nav-item" id="btn-nav-plan">
         <span>📋</span> Planning
@@ -642,12 +642,11 @@
         renderPlanning();
     });
 
-    // 4. HISTORY (TABELA EXCEL ORDENADA POR DATA DECRESCENTE)
+    // 4. HISTORY
     function renderHistory() {
         const tbody = document.getElementById('history-table-body');
         tbody.innerHTML = '';
 
-        // Cria uma cópia e ordena da data mais recente para a mais antiga
         const sortedWithIndex = transactions.map((t, idx) => ({ ...t, originalIndex: idx }));
         sortedWithIndex.sort((a, b) => new Date(b.date) - new Date(a.date));
 
