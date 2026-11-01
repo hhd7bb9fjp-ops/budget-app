@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Budget Manager v4.8</title>
+    <title>Budget Manager v5.0</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f2f2f7; margin: 0; padding: 16px; color: #1c1c1e; padding-bottom: 90px; }
         .container { max-width: 600px; margin: 0 auto; }
         h2 { text-align: center; font-size: 22px; margin-bottom: 16px; }
+        h3 { font-size: 16px; margin: 16px 0 10px 0; color: #1c1c1e; }
         
         .view { display: none; }
         .view.active { display: block; }
@@ -17,29 +18,53 @@
         .card.balance { grid-column: span 2; background: #007aff; color: white; }
         .card.plan-balance { grid-column: span 2; background: #5856d6; color: white; }
         .card.dash-balance { grid-column: span 2; background: #34c759; color: white; }
-        .card h3 { margin: 0 0 5px 0; font-size: 14px; font-weight: 500; opacity: 0.9; }
+        .card h3 { margin: 0 0 5px 0; font-size: 14px; font-weight: 500; opacity: 0.9; color: inherit; }
         .card p { margin: 0; font-size: 24px; font-weight: bold; }
         .text-green { color: #34c759; }
         .text-red { color: #ff3b30; }
 
-        .filter-section { background: #ffffff; padding: 12px 16px; border-radius: 14px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; gap: 10px; align-items: center; }
+        .filter-section { background: #ffffff; padding: 12px 16px; border-radius: 14px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; gap: 10px; align-items: center; }
         .filter-section select { margin-bottom: 0; flex: 1; }
         .btn-filter-clear { background: #8e8e93; color: white; border: none; padding: 12px 14px; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; white-space: nowrap; width: auto; margin-bottom: 0; }
 
         .export-section { margin-bottom: 16px; display: flex; justify-content: flex-end; }
         .btn-export { background: #34c759; color: white; border: none; padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; width: auto; margin-bottom: 0; }
 
-        .chart-container { background: #ffffff; padding: 16px; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 20px; }
+        /* Containers de Gráficos */
+        .chart-container { background: #ffffff; padding: 16px; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 16px; }
+        .chart-box-title { font-size: 15px; font-weight: 600; margin: 0 0 12px 0; text-align: center; color: #1c1c1e; }
+        
+        /* Barras Verticais */
         .chart-category-block { margin-bottom: 16px; border-bottom: 1px solid #f2f2f7; padding-bottom: 12px; }
+        .chart-category-block:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
         .chart-category-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; display: flex; justify-content: space-between; }
         .bars-wrapper { display: flex; align-items: flex-end; height: 130px; gap: 12px; padding-top: 22px; border-bottom: 2px solid #e5e5ea; }
         .bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
-        .bar { width: 100%; max-width: 45px; border-radius: 6px 6px 0 0; transition: height 0.3s ease; position: relative; }
+        .bar { width: 100%; max-width: 55px; border-radius: 6px 6px 0 0; transition: height 0.3s ease; position: relative; min-height: 2px; }
         .bar-planned { background-color: #007aff; }
         .bar-actual { background-color: #ff3b30; }
-        .bar-label { font-size: 11px; color: #8e8e93; margin-top: 4px; text-align: center; }
-        .bar-value { font-size: 10px; font-weight: bold; position: absolute; top: -18px; width: 100%; text-align: center; color: #3a3a3c; }
+        .bar-income { background-color: #34c759; }
+        .bar-expense { background-color: #ff3b30; }
+        .bar-label { font-size: 12px; font-weight: 500; color: #8e8e93; margin-top: 6px; text-align: center; }
+        .bar-value { font-size: 11px; font-weight: bold; position: absolute; top: -18px; width: 100%; text-align: center; color: #1c1c1e; white-space: nowrap; }
 
+        /* Gráfico de Pizza (Conic Gradient) */
+        .pie-wrapper { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+        .pie-chart { width: 160px; height: 160px; border-radius: 50%; box-shadow: 0 2px 10px rgba(0,0,0,0.08); flex-shrink: 0; }
+        .pie-legend { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; list-style: none; padding: 0; margin: 0; }
+        .pie-legend-item { display: flex; align-items: center; font-size: 12px; color: #1c1c1e; overflow: hidden; }
+        .pie-color-dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; flex-shrink: 0; }
+        .pie-legend-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+        .pie-legend-perc { font-weight: bold; margin-left: 4px; color: #3a3a3c; flex-shrink: 0; }
+
+        /* Barra Colapsável (Accordion) */
+        .collapse-bar { background: #ffffff; color: #007aff; padding: 14px 16px; border-radius: 14px; font-weight: 600; font-size: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 16px; border: 1px solid #e5e5ea; user-select: none; }
+        .collapse-bar span.arrow { transition: transform 0.25s ease; font-size: 14px; }
+        .collapse-bar.open span.arrow { transform: rotate(180deg); }
+        .collapsible-content { display: none; }
+        .collapsible-content.open { display: block; }
+
+        /* Tabela Estilo Excel para o History */
         .excel-table-container { background: #ffffff; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow-x: auto; margin-bottom: 20px; }
         .excel-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
         .excel-table th { background: #f8f8fa; padding: 10px 8px; font-weight: 600; color: #8e8e93; border-bottom: 1px solid #e5e5ea; white-space: nowrap; }
@@ -78,7 +103,7 @@
     
     <!-- TELA 1: DASHBOARD -->
     <div id="view-dashboard" class="view active">
-        <h2>Dashboard</h2>
+        <h2>Dashboard v5.0</h2>
         
         <div class="filter-section">
             <select id="filter-month" onchange="renderDashboard()">
@@ -96,27 +121,46 @@
                 <option value="11">November</option>
                 <option value="12">December</option>
             </select>
-            <select id="filter-year" onchange="renderDashboard()">
-            </select>
+            <select id="filter-year" onchange="renderDashboard()"></select>
         </div>
 
-        <div class="dashboard">
-            <div class="card dash-balance">
-                <h3>Net Balance (Actual vs Expected)</h3>
-                <p id="dash-net-balance">$ 0.00</p>
-            </div>
-            <div class="card">
-                <h3>Actual Income</h3>
-                <p id="dash-actual-inc" class="text-green">$ 0.00</p>
-            </div>
-            <div class="card">
-                <h3>Actual Expenses</h3>
-                <p id="dash-actual-exp" class="text-red">$ 0.00</p>
-            </div>
+        <!-- 1. Gráfico de Barras: Income vs Expenses do Período -->
+        <div class="chart-container">
+            <div class="chart-box-title">Period Overview: Income vs Expenses</div>
+            <div id="dash-inc-exp-chart"></div>
         </div>
 
-        <h3>Planned (Blue) vs Actual (Red) by Category</h3>
-        <div class="chart-container" id="chart-area"></div>
+        <!-- 2. Gráfico de Pizza: Actual Expenses por Categoria (%) -->
+        <div class="chart-container">
+            <div class="chart-box-title">Actual Expenses Breakdown (%)</div>
+            <div id="dash-pie-area"></div>
+        </div>
+
+        <!-- 3. Barra Única Colapsável para os Cards e Detalhes -->
+        <div class="collapse-bar" id="dash-collapse-btn" onclick="toggleDashDetails()">
+            <span>Summary Cards & Category Comparison</span>
+            <span class="arrow">▼</span>
+        </div>
+
+        <div class="collapsible-content" id="dash-collapsible-area">
+            <div class="dashboard">
+                <div class="card dash-balance">
+                    <h3>Net Balance (Actual vs Expected)</h3>
+                    <p id="dash-net-balance">$ 0.00</p>
+                </div>
+                <div class="card">
+                    <h3>Actual Income</h3>
+                    <p id="dash-actual-inc" class="text-green">$ 0.00</p>
+                </div>
+                <div class="card">
+                    <h3>Actual Expenses</h3>
+                    <p id="dash-actual-exp" class="text-red">$ 0.00</p>
+                </div>
+            </div>
+
+            <h3>Planned (Blue) vs Actual (Red) by Category</h3>
+            <div class="chart-container" id="chart-area"></div>
+        </div>
     </div>
 
     <!-- TELA 2: TRANSACTIONS -->
@@ -174,11 +218,13 @@
                         <option value="Subscriptions">Subscriptions & Streaming</option>
                         <option value="Shopping & Entertainment">Shopping & Entertainment</option>
                         <option value="Travel">Travel</option>
+                        <option value="Other">Other (Gifts, etc.)</option>
                     </optgroup>
                     <optgroup label="Savings & Obligations">
                         <option value="Insurance">Insurance (Auto, Home, Life)</option>
                         <option value="Debt & Loans">Debt & Loans</option>
                         <option value="Taxes">Taxes</option>
+                        <option value="Allowance">Allowance (Family)</option>
                         <option value="Emergency Fund & Investments">Savings & Investments</option>
                         <option value="Education">Courses & Education</option>
                     </optgroup>
@@ -211,8 +257,7 @@
                 <option value="11">November</option>
                 <option value="12">December</option>
             </select>
-            <select id="plan-filter-year" onchange="renderPlanning()">
-            </select>
+            <select id="plan-filter-year" onchange="renderPlanning()"></select>
         </div>
 
         <div class="dashboard">
@@ -228,6 +273,12 @@
                 <h3>Expected Expenses</h3>
                 <p id="plan-total-expense" class="text-red">$ 0.00</p>
             </div>
+        </div>
+
+        <!-- Gráfico de Pizza do Planejamento (Planned Expenses %) -->
+        <div class="chart-container">
+            <div class="chart-box-title">Planned Expenses Breakdown (%)</div>
+            <div id="plan-pie-area"></div>
         </div>
 
         <div class="form-section">
@@ -255,11 +306,13 @@
                         <option value="Subscriptions">Subscriptions & Streaming</option>
                         <option value="Shopping & Entertainment">Shopping & Entertainment</option>
                         <option value="Travel">Travel</option>
+                        <option value="Other">Other (Gifts, etc.)</option>
                     </optgroup>
                     <optgroup label="Savings & Obligations">
                         <option value="Insurance">Insurance (Auto, Home, Life)</option>
                         <option value="Debt & Loans">Debt & Loans</option>
                         <option value="Taxes">Taxes</option>
+                        <option value="Allowance">Allowance (Family)</option>
                         <option value="Emergency Fund & Investments">Savings & Investments</option>
                         <option value="Education">Courses & Education</option>
                     </optgroup>
@@ -305,8 +358,7 @@
                 <option value="11">November</option>
                 <option value="12">December</option>
             </select>
-            <select id="hist-filter-year" onchange="renderHistory()">
-            </select>
+            <select id="hist-filter-year" onchange="renderHistory()"></select>
             <button type="button" class="btn-filter-clear" onclick="clearHistoryFilters()">Show All</button>
         </div>
 
@@ -325,8 +377,7 @@
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody id="history-table-body">
-                </tbody>
+                <tbody id="history-table-body"></tbody>
             </table>
         </div>
     </div>
@@ -350,6 +401,12 @@
 </nav>
 
 <script>
+    const PIE_COLORS = [
+        '#007aff', '#ff3b30', '#34c759', '#ff9500', '#5856d6',
+        '#af52de', '#ff2d55', '#5ac8fa', '#ffcc00', '#30b0c7',
+        '#a2845e', '#8e8e93', '#32ade6', '#ff6b6b', '#4cd964'
+    ];
+
     function getTodayLocal() {
         const d = new Date();
         return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -359,6 +416,58 @@
         const today = getTodayLocal();
         if (editingTxIndex === -1) document.getElementById('date').value = today;
         if (editingPlanIndex === -1) document.getElementById('plan-date').value = today;
+    }
+
+    function toggleDashDetails() {
+        const btn = document.getElementById('dash-collapse-btn');
+        const area = document.getElementById('dash-collapsible-area');
+        btn.classList.toggle('open');
+        area.classList.toggle('open');
+    }
+
+    // Função geradora de Gráfico de Pizza com Rótulos Percentuais
+    function renderPieChart(containerId, categoryAmountsMap) {
+        const container = document.getElementById(containerId);
+        const entries = Object.entries(categoryAmountsMap)
+            .filter(([_, val]) => val > 0)
+            .sort((a, b) => b[1] - a[1]);
+
+        const total = entries.reduce((acc, curr) => acc + curr[1], 0);
+
+        if (entries.length === 0 || total <= 0) {
+            container.innerHTML = '<p style="text-align:center;color:#8e8e93;margin:14px 0;font-size:13px;">No expenses recorded for this period.</p>';
+            return;
+        }
+
+        let currentAngle = 0;
+        const gradientParts = [];
+        let legendHTML = '';
+
+        entries.forEach(([cat, val], idx) => {
+            const perc = (val / total) * 100;
+            const angle = (perc / 100) * 360;
+            const startAngle = currentAngle;
+            const endAngle = currentAngle + angle;
+            const color = PIE_COLORS[idx % PIE_COLORS.length];
+
+            gradientParts.push(`${color} ${startAngle.toFixed(2)}deg ${endAngle.toFixed(2)}deg`);
+            currentAngle = endAngle;
+
+            legendHTML += `
+                <li class="pie-legend-item">
+                    <span class="pie-color-dot" style="background-color: ${color};"></span>
+                    <span class="pie-legend-text" title="${cat}">${cat}</span>
+                    <span class="pie-legend-perc">${perc.toFixed(1)}%</span>
+                </li>
+            `;
+        });
+
+        container.innerHTML = `
+            <div class="pie-wrapper">
+                <div class="pie-chart" style="background: conic-gradient(${gradientParts.join(', ')});"></div>
+                <ul class="pie-legend">${legendHTML}</ul>
+            </div>
+        `;
     }
 
     const currentYearStr = new Date().getFullYear().toString();
@@ -459,9 +568,16 @@
         let effectivePlan = selectedMonth !== 'ALL' ? getEffectivePlanForMonth(selectedYear, selectedMonth) : getEffectivePlanForMonth(selectedYear, '12');
 
         let actInc = 0, actExp = 0;
+        const actualExpensesByCat = {};
+
         filteredTx.forEach(t => {
             const v = parseFloat(t.amount) || 0;
-            if (t.type === 'income') actInc += v; else actExp += v;
+            if (t.type === 'income') {
+                actInc += v;
+            } else {
+                actExp += v;
+                actualExpensesByCat[t.category] = (actualExpensesByCat[t.category] || 0) + v;
+            }
         });
 
         let planInc = 0, planExp = 0;
@@ -470,6 +586,31 @@
             if (p.type === 'income') planInc += v; else planExp += v;
         });
 
+        // Atualizar Gráfico 1: Barras Income vs Expenses
+        const maxIncExp = Math.max(actInc, actExp, 10);
+        const incHeight = Math.round((actInc / maxIncExp) * 100);
+        const expHeight = Math.round((actExp / maxIncExp) * 100);
+        document.getElementById('dash-inc-exp-chart').innerHTML = `
+            <div class="bars-wrapper" style="height: 120px;">
+                <div class="bar-group">
+                    <div class="bar bar-income" style="height: ${incHeight}%;">
+                        <span class="bar-value">$${actInc.toFixed(0)}</span>
+                    </div>
+                    <span class="bar-label">Income</span>
+                </div>
+                <div class="bar-group">
+                    <div class="bar bar-expense" style="height: ${expHeight}%;">
+                        <span class="bar-value">$${actExp.toFixed(0)}</span>
+                    </div>
+                    <span class="bar-label">Expenses</span>
+                </div>
+            </div>
+        `;
+
+        // Atualizar Gráfico 2: Pizza de Actual Expenses por Categoria
+        renderPieChart('dash-pie-area', actualExpensesByCat);
+
+        // Atualizar Cards dentro da seção colapsável
         document.getElementById('dash-actual-inc').innerText = '$ ' + actInc.toFixed(2);
         document.getElementById('dash-actual-exp').innerText = '$ ' + actExp.toFixed(2);
         const netActual = actInc - actExp;
@@ -477,7 +618,6 @@
         document.getElementById('dash-net-balance').innerText = '$ ' + netActual.toFixed(2) + ' (Exp: $' + netPlan.toFixed(2) + ')';
 
         const categoryMap = {};
-        
         effectivePlan.forEach(p => {
             if (!categoryMap[p.category]) categoryMap[p.category] = { planned: 0, actual: 0 };
             categoryMap[p.category].planned += (parseFloat(p.amount) || 0);
@@ -620,7 +760,7 @@
         renderDashboard();
     });
 
-    // 3. PLANNING
+    // 3. PLANNING (COM GRÁFICO DE PIZZA DE DESPESAS PLANEJADAS)
     function renderPlanning() {
         const selMonth = document.getElementById('plan-filter-month').value;
         const selYear = document.getElementById('plan-filter-year').value;
@@ -629,10 +769,16 @@
         const list = document.getElementById('plan-list');
         list.innerHTML = '';
         let inc = 0, exp = 0;
+        const plannedExpensesByCat = {};
 
         effectiveList.forEach((p) => {
             const val = parseFloat(p.amount) || 0;
-            if (p.type === 'income') inc += val; else exp += val;
+            if (p.type === 'income') {
+                inc += val;
+            } else {
+                exp += val;
+                plannedExpensesByCat[p.category] = (plannedExpensesByCat[p.category] || 0) + val;
+            }
 
             const noteText = (p.description && p.description.trim() !== '') ? (p.description + ' • ') : '';
 
@@ -649,6 +795,10 @@
         document.getElementById('plan-total-income').innerText = '$ ' + inc.toFixed(2);
         document.getElementById('plan-total-expense').innerText = '$ ' + exp.toFixed(2);
         document.getElementById('plan-total-balance').innerText = '$ ' + (inc - exp).toFixed(2);
+        
+        // Renderizar Pizza do Planning
+        renderPieChart('plan-pie-area', plannedExpensesByCat);
+
         localStorage.setItem('app_plan_v2', JSON.stringify(planItems));
     }
 
@@ -717,7 +867,7 @@
         renderDashboard();
     });
 
-    // 4. HISTORY (BLINDADO PARA IOS / SAFARI)
+    // 4. HISTORY
     function renderHistory() {
         const selMonth = document.getElementById('hist-filter-month').value;
         const selYear = document.getElementById('hist-filter-year').value;
@@ -784,7 +934,6 @@
             csvContent += row.join(',') + '\n';
         });
 
-        // Criação de Blob para suportar download nativo no Safari/iOS e PC
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
