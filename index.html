@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Budget Manager v4.4</title>
+    <title>Budget Manager v4.6</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f2f2f7; margin: 0; padding: 16px; color: #1c1c1e; padding-bottom: 90px; }
         .container { max-width: 600px; margin: 0 auto; }
@@ -22,22 +22,25 @@
         .text-green { color: #34c759; }
         .text-red { color: #ff3b30; }
 
-        .filter-section { background: #ffffff; padding: 12px 16px; border-radius: 14px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; gap: 10px; }
-        .filter-section select { margin-bottom: 0; }
+        .filter-section { background: #ffffff; padding: 12px 16px; border-radius: 14px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; gap: 10px; align-items: center; }
+        .filter-section select { margin-bottom: 0; flex: 1; }
+        .btn-filter-clear { background: #8e8e93; color: white; border: none; padding: 12px 14px; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; white-space: nowrap; width: auto; margin-bottom: 0; }
 
-        /* Gráfico de Barras Verticais */
+        .export-section { margin-bottom: 16px; display: flex; justify-content: flex-end; }
+        .btn-export { background: #34c759; color: white; border: none; padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; width: auto; margin-bottom: 0; }
+
+        /* Gráfico Unificado de Barras Verticais */
         .chart-container { background: #ffffff; padding: 16px; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 20px; }
         .chart-category-block { margin-bottom: 16px; border-bottom: 1px solid #f2f2f7; padding-bottom: 12px; }
         .chart-category-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; display: flex; justify-content: space-between; }
-        .bars-wrapper { display: flex; align-items: flex-end; height: 120px; gap: 12px; padding-top: 20px; border-bottom: 2px solid #e5e5ea; }
+        .bars-wrapper { display: flex; align-items: flex-end; height: 130px; gap: 12px; padding-top: 22px; border-bottom: 2px solid #e5e5ea; }
         .bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
-        .bar { width: 100%; max-width: 40px; border-radius: 6px 6px 0 0; transition: height 0.3s ease; position: relative; }
-        .bar-planned { background-color: #5856d6; }
-        .bar-actual { background-color: #007aff; }
+        .bar { width: 100%; max-width: 45px; border-radius: 6px 6px 0 0; transition: height 0.3s ease; position: relative; }
+        .bar-planned { background-color: #007aff; } /* Azul para o previsto */
+        .bar-actual { background-color: #ff3b30; }  /* Vermelho para o real */
         .bar-label { font-size: 11px; color: #8e8e93; margin-top: 4px; text-align: center; }
-        .bar-value { font-size: 10px; font-weight: bold; position: absolute; top: -16px; width: 100%; text-align: center; color: #3a3a3c; }
+        .bar-value { font-size: 10px; font-weight: bold; position: absolute; top: -18px; width: 100%; text-align: center; color: #3a3a3c; }
 
-        /* Tabela Estilo Excel para o History */
         .excel-table-container { background: #ffffff; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow-x: auto; margin-bottom: 20px; }
         .excel-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
         .excel-table th { background: #f8f8fa; padding: 10px 8px; font-weight: 600; color: #8e8e93; border-bottom: 1px solid #e5e5ea; white-space: nowrap; }
@@ -64,7 +67,6 @@
         .btn-edit { background: #ff9500; color: white; width: auto; padding: 6px 10px; font-size: 12px; margin: 0 0 0 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
         .btn-delete { background: #ff3b30; color: white; width: auto; padding: 6px 12px; font-size: 12px; margin: 0 0 0 6px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
 
-        /* BARRA INFERIOR */
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #ffffff; border-top: 1px solid #e5e5ea; display: flex; justify-content: space-between; padding: 8px 4px 20px 4px; z-index: 1000; box-sizing: border-box; }
         .nav-item { background: none; border: none; color: #8e8e93; font-size: 11px; font-weight: 600; display: flex; flex-direction: column; align-items: center; flex: 1; padding: 4px 0; cursor: pointer; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .nav-item.active { color: #007aff; }
@@ -114,7 +116,7 @@
             </div>
         </div>
 
-        <h3>Planned vs Actual by Category</h3>
+        <h3>Planned (Blue) vs Actual (Red) by Category</h3>
         <div class="chart-container" id="chart-area"></div>
     </div>
 
@@ -195,7 +197,6 @@
     <div id="view-planning" class="view">
         <h2>Monthly Plan</h2>
 
-        <!-- Filtro de Mês e Ano para o Planning -->
         <div class="filter-section">
             <select id="plan-filter-month" onchange="renderPlanning()">
                 <option value="01">January</option>
@@ -288,6 +289,32 @@
     <!-- TELA 4: HISTORY -->
     <div id="view-history" class="view">
         <h2>Transactions History</h2>
+        
+        <div class="filter-section">
+            <select id="hist-filter-month" onchange="renderHistory()">
+                <option value="ALL">All Months</option>
+                <option value="01">January</option>
+                <option value="02">February</option>
+                <option value="03">March</option>
+                <option value="04">April</option>
+                <option value="05">May</option>
+                <option value="06">June</option>
+                <option value="07">July</option>
+                <option value="08">August</option>
+                <option value="09">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+            </select>
+            <select id="hist-filter-year" onchange="renderHistory()">
+            </select>
+            <button type="button" class="btn-filter-clear" onclick="clearHistoryFilters()">Show All</button>
+        </div>
+
+        <div class="export-section">
+            <button type="button" class="btn-export" onclick="exportToCSV()">📥 Export to CSV</button>
+        </div>
+
         <div class="excel-table-container">
             <table class="excel-table">
                 <thead>
@@ -320,418 +347,3 @@
     </button>
     <button type="button" class="nav-item" id="btn-nav-hist">
         <span>📑</span> History
-    </button>
-</nav>
-
-<script>
-    function getTodayLocal() {
-        const d = new Date();
-        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-    }
-
-    function refreshDefaultDates() {
-        const today = getTodayLocal();
-        if (editingTxIndex === -1) document.getElementById('date').value = today;
-        if (editingPlanIndex === -1) document.getElementById('plan-date').value = today;
-    }
-
-    const currentYearStr = new Date().getFullYear().toString();
-    const currentMonthStr = String(new Date().getMonth() + 1).padStart(2, '0');
-
-    // Popular Anos no Dashboard e no Planning
-    const yearSelect = document.getElementById('filter-year');
-    const planYearSelect = document.getElementById('plan-filter-year');
-    let yearOptionsHTML = '';
-    for (let y = 2024; y <= 2030; y++) {
-        yearOptionsHTML += `<option value="${y}" ${y.toString() === currentYearStr ? 'selected' : ''}>${y}</option>`;
-    }
-    yearSelect.innerHTML = yearOptionsHTML;
-    planYearSelect.innerHTML = yearOptionsHTML;
-
-    // Selecionar mês atual nos filtros
-    document.getElementById('filter-month').value = currentMonthStr;
-    document.getElementById('plan-filter-month').value = currentMonthStr;
-
-    let editingTxIndex = -1;
-    let editingPlanIndex = -1;
-
-    const viewDash = document.getElementById('view-dashboard');
-    const viewTrans = document.getElementById('view-transactions');
-    const viewPlan = document.getElementById('view-planning');
-    const viewHist = document.getElementById('view-history');
-    
-    const btnDash = document.getElementById('btn-nav-dash');
-    const btnTrans = document.getElementById('btn-nav-trans');
-    const btnPlan = document.getElementById('btn-nav-plan');
-    const btnHist = document.getElementById('btn-nav-hist');
-
-    function switchView(target) {
-        viewDash.classList.remove('active');
-        viewTrans.classList.remove('active');
-        viewPlan.classList.remove('active');
-        viewHist.classList.remove('active');
-        
-        btnDash.classList.remove('active');
-        btnTrans.classList.remove('active');
-        btnPlan.classList.remove('active');
-        btnHist.classList.remove('active');
-
-        if(target === 'dash') { viewDash.classList.add('active'); btnDash.classList.add('active'); renderDashboard(); }
-        if(target === 'trans') { viewTrans.classList.add('active'); btnTrans.classList.add('active'); renderTransactions(); }
-        if(target === 'plan') { viewPlan.classList.add('active'); btnPlan.classList.add('active'); renderPlanning(); }
-        if(target === 'hist') { viewHist.classList.add('active'); btnHist.classList.add('active'); renderHistory(); }
-        
-        refreshDefaultDates();
-        window.scrollTo(0, 0);
-    }
-
-    btnDash.addEventListener('click', () => switchView('dash'));
-    btnTrans.addEventListener('click', () => switchView('trans'));
-    btnPlan.addEventListener('click', () => switchView('plan'));
-    btnHist.addEventListener('click', () => switchView('hist'));
-
-    window.addEventListener('focus', refreshDefaultDates);
-
-    let transactions = JSON.parse(localStorage.getItem('app_transactions_v2')) || [];
-    let planItems = JSON.parse(localStorage.getItem('app_plan_v2')) || [];
-
-    function getEffectivePlanForMonth(targetYear, targetMonth) {
-        const targetValue = parseInt(targetYear) * 12 + parseInt(targetMonth);
-        const map = {};
-        const sorted = [...planItems].sort((a, b) => new Date(a.date) - new Date(b.date));
-
-        sorted.forEach(p => {
-            if (!p.date) return;
-            const [y, m] = p.date.split('-');
-            const itemValue = parseInt(y) * 12 + parseInt(m);
-            if (itemValue <= targetValue) {
-                if (!map[p.category]) {
-                    map[p.category] = { ...p, amount: parseFloat(p.amount) || 0 };
-                } else {
-                    map[p.category].amount += (parseFloat(p.amount) || 0);
-                }
-            }
-        });
-        return Object.values(map);
-    }
-
-    // 1. DASHBOARD
-    function renderDashboard() {
-        const selectedMonth = document.getElementById('filter-month').value;
-        const selectedYear = document.getElementById('filter-year').value;
-
-        const filteredTx = transactions.filter(t => {
-            if (!t.date) return false;
-            const [y, m] = t.date.split('-');
-            if (y !== selectedYear) return false;
-            if (selectedMonth !== 'ALL' && m !== selectedMonth) return false;
-            return true;
-        });
-
-        let effectivePlan = selectedMonth !== 'ALL' ? getEffectivePlanForMonth(selectedYear, selectedMonth) : getEffectivePlanForMonth(selectedYear, '12');
-
-        let actInc = 0, actExp = 0;
-        filteredTx.forEach(t => {
-            const v = parseFloat(t.amount) || 0;
-            if (t.type === 'income') actInc += v; else actExp += v;
-        });
-
-        let planInc = 0, planExp = 0;
-        effectivePlan.forEach(p => {
-            const v = parseFloat(p.amount) || 0;
-            if (p.type === 'income') planInc += v; else planExp += v;
-        });
-
-        document.getElementById('dash-actual-inc').innerText = '$ ' + actInc.toFixed(2);
-        document.getElementById('dash-actual-exp').innerText = '$ ' + actExp.toFixed(2);
-        const netActual = actInc - actExp;
-        const netPlan = planInc - planExp;
-        document.getElementById('dash-net-balance').innerText = '$ ' + netActual.toFixed(2) + ' (Exp: $' + netPlan.toFixed(2) + ')';
-
-        const categoryMap = {};
-        effectivePlan.forEach(p => {
-            if (!categoryMap[p.category]) categoryMap[p.category] = { planned: 0, actual: 0 };
-            categoryMap[p.category].planned += (parseFloat(p.amount) || 0);
-        });
-
-        filteredTx.forEach(t => {
-            if (!categoryMap[t.category]) categoryMap[t.category] = { planned: 0, actual: 0 };
-            categoryMap[t.category].actual += (parseFloat(t.amount) || 0);
-        });
-
-        const chartArea = document.getElementById('chart-area');
-        chartArea.innerHTML = '';
-
-        const categories = Object.keys(categoryMap);
-        if (categories.length === 0) {
-            chartArea.innerHTML = '<p style="text-align:center;color:#8e8e93;margin:20px 0;">No data for this period.</p>';
-            return;
-        }
-
-        categories.forEach(cat => {
-            const data = categoryMap[cat];
-            const maxVal = Math.max(data.planned, data.actual, 10);
-            const planHeight = Math.round((data.planned / maxVal) * 100);
-            const actHeight = Math.round((data.actual / maxVal) * 100);
-
-            const block = document.createElement('div');
-            block.className = 'chart-category-block';
-            block.innerHTML = `
-                <div class="chart-category-title">
-                    <span>${cat}</span>
-                    <span style="font-size:12px;color:#8e8e93;">Plan: $${data.planned.toFixed(0)} | Act: $${data.actual.toFixed(0)}</span>
-                </div>
-                <div class="bars-wrapper">
-                    <div class="bar-group">
-                        <div class="bar bar-planned" style="height: ${planHeight}%;">
-                            <span class="bar-value">$${data.planned.toFixed(0)}</span>
-                        </div>
-                        <span class="bar-label">Planned</span>
-                    </div>
-                    <div class="bar-group">
-                        <div class="bar bar-actual" style="height: ${actHeight}%;">
-                            <span class="bar-value">$${data.actual.toFixed(0)}</span>
-                        </div>
-                        <span class="bar-label">Actual</span>
-                    </div>
-                </div>
-            `;
-            chartArea.appendChild(block);
-        });
-    }
-
-    // 2. TRANSACTIONS
-    function renderTransactions() {
-        const list = document.getElementById('transaction-list');
-        list.innerHTML = '';
-        let inc = 0, exp = 0;
-
-        transactions.forEach((t, i) => {
-            const val = parseFloat(t.amount) || 0;
-            if (t.type === 'income') inc += val; else exp += val;
-
-            const li = document.createElement('li');
-            li.className = 'item';
-            li.innerHTML = '<div class="item-info"><h4>' + t.description + '</h4><p>' + t.category + ' • ' + t.date + '</p></div>' +
-                           '<div class="action-buttons"><span class="' + (t.type === 'income' ? 'text-green' : 'text-red') + '">' +
-                           (t.type === 'income' ? '+' : '-') + '$ ' + val.toFixed(2) + '</span>' +
-                           '<button class="btn-edit" onclick="editTx(' + i + ')">Edit</button>' +
-                           '<button class="btn-delete" onclick="removeTx(' + i + ')">X</button></div>';
-            list.appendChild(li);
-        });
-
-        document.getElementById('total-income').innerText = '$ ' + inc.toFixed(2);
-        document.getElementById('total-expense').innerText = '$ ' + exp.toFixed(2);
-        document.getElementById('total-balance').innerText = '$ ' + (inc - exp).toFixed(2);
-        localStorage.setItem('app_transactions_v2', JSON.stringify(transactions));
-    }
-
-    window.editTx = function(index) {
-        const t = transactions[index];
-        document.getElementById('date').value = t.date;
-        document.getElementById('description').value = t.description;
-        document.getElementById('amount').value = t.amount;
-        document.getElementById('type').value = t.type;
-        document.getElementById('category').value = t.category;
-
-        editingTxIndex = index;
-        const submitBtn = document.getElementById('btn-submit-tx');
-        submitBtn.innerText = 'Update Transaction';
-        submitBtn.classList.add('btn-warning');
-        document.getElementById('btn-cancel-tx').style.display = 'block';
-        switchView('trans');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    window.cancelEditTx = function() {
-        editingTxIndex = -1;
-        document.getElementById('transaction-form').reset();
-        document.getElementById('date').value = getTodayLocal();
-        const submitBtn = document.getElementById('btn-submit-tx');
-        submitBtn.innerText = 'Add Transaction';
-        submitBtn.classList.remove('btn-warning');
-        document.getElementById('btn-cancel-tx').style.display = 'none';
-    };
-
-    window.removeTx = function(index) {
-        if (editingTxIndex === index) cancelEditTx();
-        else if (editingTxIndex > index) editingTxIndex--;
-        transactions.splice(index, 1);
-        renderTransactions();
-        renderHistory();
-        renderDashboard();
-    };
-
-    document.getElementById('transaction-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const itemData = {
-            date: document.getElementById('date').value || getTodayLocal(),
-            description: document.getElementById('description').value,
-            amount: parseFloat(document.getElementById('amount').value) || 0,
-            type: document.getElementById('type').value,
-            category: document.getElementById('category').value
-        };
-
-        if (editingTxIndex > -1) {
-            transactions[editingTxIndex] = itemData;
-            cancelEditTx();
-        } else {
-            transactions.push(itemData);
-            this.reset();
-            document.getElementById('date').value = getTodayLocal();
-        }
-        document.getElementById('amount').blur();
-        renderTransactions();
-        renderHistory();
-        renderDashboard();
-    });
-
-    // 3. PLANNING (COM FILTRO DE MÊS E ANO)
-    function renderPlanning() {
-        const selMonth = document.getElementById('plan-filter-month').value;
-        const selYear = document.getElementById('plan-filter-year').value;
-
-        // Pega o planejamento efetivo calculado para aquele mês/ano específico
-        const effectiveList = getEffectivePlanForMonth(selYear, selMonth);
-
-        const list = document.getElementById('plan-list');
-        list.innerHTML = '';
-        let inc = 0, exp = 0;
-
-        effectiveList.forEach((p) => {
-            const val = parseFloat(p.amount) || 0;
-            if (p.type === 'income') inc += val; else exp += val;
-
-            const noteText = (p.description && p.description.trim() !== '') ? (p.description + ' • ') : '';
-
-            // Encontra o índice real no array original de planItems para edição correta
-            const realIndex = planItems.findIndex(item => item.category === p.category && item.date === p.date);
-
-            const li = document.createElement('li');
-            li.className = 'item';
-            li.innerHTML = '<div class="item-info"><h4>' + p.category + '</h4><p>' + noteText + p.date + '</p></div>' +
-                           '<div class="action-buttons"><span class="' + (p.type === 'income' ? 'text-green' : 'text-red') + '">' +
-                           (p.type === 'income' ? '+' : '-') + '$ ' + val.toFixed(2) + '</span>' +
-                           '<button class="btn-edit" onclick="editPlanByCat(\'' + p.category + '\')">Edit</button>' +
-                           '<button class="btn-delete" onclick="removePlanByCat(\'' + p.category + '\')">X</button></div>';
-            list.appendChild(li);
-        });
-
-        document.getElementById('plan-total-income').innerText = '$ ' + inc.toFixed(2);
-        document.getElementById('plan-total-expense').innerText = '$ ' + exp.toFixed(2);
-        document.getElementById('plan-total-balance').innerText = '$ ' + (inc - exp).toFixed(2);
-        localStorage.setItem('app_plan_v2', JSON.stringify(planItems));
-    }
-
-    window.editPlanByCat = function(categoryName) {
-        const index = planItems.findIndex(item => item.category === categoryName);
-        if (index > -1) {
-            editPlan(index);
-        }
-    }
-
-    window.removePlanByCat = function(categoryName) {
-        const index = planItems.findIndex(item => item.category === categoryName);
-        if (index > -1) {
-            if (editingPlanIndex === index) cancelEditPlan();
-            planItems.splice(index, 1);
-            renderPlanning();
-            renderDashboard();
-        }
-    }
-
-    window.editPlan = function(index) {
-        const p = planItems[index];
-        document.getElementById('plan-date').value = p.date;
-        document.getElementById('plan-category').value = p.category;
-        document.getElementById('plan-type').value = p.type;
-        document.getElementById('plan-amount').value = p.amount;
-        document.getElementById('plan-description').value = p.description || '';
-
-        editingPlanIndex = index;
-        const submitBtn = document.getElementById('btn-submit-plan');
-        submitBtn.innerText = 'Update Plan Item';
-        submitBtn.classList.add('btn-warning');
-        document.getElementById('btn-cancel-plan').style.display = 'block';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    window.cancelEditPlan = function() {
-        editingPlanIndex = -1;
-        document.getElementById('plan-form').reset();
-        document.getElementById('plan-date').value = getTodayLocal();
-        const submitBtn = document.getElementById('btn-submit-plan');
-        submitBtn.innerText = 'Add to Plan';
-        submitBtn.classList.remove('btn-warning');
-        document.getElementById('btn-cancel-plan').style.display = 'none';
-    };
-
-    document.getElementById('plan-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const itemData = {
-            date: document.getElementById('plan-date').value || getTodayLocal(),
-            category: document.getElementById('plan-category').value,
-            type: document.getElementById('plan-type').value,
-            amount: parseFloat(document.getElementById('plan-amount').value) || 0,
-            description: document.getElementById('plan-description').value.trim()
-        };
-
-        if (editingPlanIndex > -1) {
-            planItems[editingPlanIndex] = itemData;
-            cancelEditPlan();
-        } else {
-            planItems.push(itemData);
-            this.reset();
-            document.getElementById('plan-date').value = getTodayLocal();
-        }
-        document.getElementById('plan-amount').blur();
-        document.getElementById('plan-description').blur();
-        renderPlanning();
-        renderDashboard();
-    });
-
-    // 4. HISTORY
-    function renderHistory() {
-        const tbody = document.getElementById('history-table-body');
-        tbody.innerHTML = '';
-
-        const sortedWithIndex = transactions.map((t, idx) => ({ ...t, originalIndex: idx }));
-        sortedWithIndex.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-        if (sortedWithIndex.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#8e8e93;padding:20px;">No transactions recorded yet.</td></tr>';
-            return;
-        }
-
-        sortedWithIndex.forEach(item => {
-            const val = parseFloat(item.amount) || 0;
-            const isIncome = item.type === 'income';
-            const tr = document.createElement('tr');
-            
-            tr.innerHTML = `
-                <td style="white-space:nowrap;">${item.date}</td>
-                <td>${item.category}</td>
-                <td>${item.description}</td>
-                <td class="${isIncome ? 'text-green' : 'text-red'}" style="font-weight:bold;white-space:nowrap;">
-                    ${isIncome ? '+' : '-'}$${val.toFixed(2)}
-                </td>
-                <td>
-                    <div class="table-btns">
-                        <button class="btn-table-edit" onclick="editTx(${item.originalIndex})">Edit</button>
-                        <button class="btn-table-del" onclick="removeTx(${item.originalIndex})">X</button>
-                    </div>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    // INICIAR
-    refreshDefaultDates();
-    renderTransactions();
-    renderPlanning();
-    renderDashboard();
-    renderHistory();
-</script>
-</body>
-</html>
