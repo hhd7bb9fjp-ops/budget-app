@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Budget Manager v5.0</title>
+    <title>Budget Manager v5.4</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f2f2f7; margin: 0; padding: 16px; color: #1c1c1e; padding-bottom: 90px; }
         .container { max-width: 600px; margin: 0 auto; }
@@ -27,8 +27,12 @@
         .filter-section select { margin-bottom: 0; flex: 1; }
         .btn-filter-clear { background: #8e8e93; color: white; border: none; padding: 12px 14px; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; white-space: nowrap; width: auto; margin-bottom: 0; }
 
-        .export-section { margin-bottom: 16px; display: flex; justify-content: flex-end; }
-        .btn-export { background: #34c759; color: white; border: none; padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; width: auto; margin-bottom: 0; }
+        /* Ações e Backups no History */
+        .actions-section { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+        .btn-action { background: #34c759; color: white; border: none; padding: 10px 12px; border-radius: 10px; font-size: 13px; font-weight: bold; cursor: pointer; text-align: center; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; width: 100%; margin-bottom: 0; }
+        .btn-backup-save { background: #007aff; }
+        .btn-backup-load { background: #5856d6; }
+        .btn-csv { background: #34c759; grid-column: span 2; }
 
         /* Containers de Gráficos */
         .chart-container { background: #ffffff; padding: 16px; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 16px; }
@@ -58,10 +62,11 @@
         .pie-legend-perc { font-weight: bold; margin-left: 4px; color: #3a3a3c; flex-shrink: 0; }
 
         /* Barra Colapsável (Accordion) */
-        .collapse-bar { background: #ffffff; color: #007aff; padding: 14px 16px; border-radius: 14px; font-weight: 600; font-size: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 16px; border: 1px solid #e5e5ea; user-select: none; }
+        .collapse-bar { background: #ffffff; color: #007aff; padding: 14px 16px; border-radius: 14px; font-weight: 600; font-size: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 12px; border: 1px solid #e5e5ea; user-select: none; }
+        .collapse-bar.plan-theme { color: #5856d6; }
         .collapse-bar span.arrow { transition: transform 0.25s ease; font-size: 14px; }
         .collapse-bar.open span.arrow { transform: rotate(180deg); }
-        .collapsible-content { display: none; }
+        .collapsible-content { display: none; margin-bottom: 16px; }
         .collapsible-content.open { display: block; }
 
         /* Tabela Estilo Excel para o History */
@@ -74,13 +79,13 @@
         .btn-table-edit { background: #ff9500; color: white; border: none; padding: 4px 8px; font-size: 11px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .btn-table-del { background: #ff3b30; color: white; border: none; padding: 4px 8px; font-size: 11px; border-radius: 6px; font-weight: bold; cursor: pointer; }
 
-        .form-section { background: #ffffff; padding: 16px; border-radius: 14px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden; }
+        .form-section { background: #ffffff; padding: 16px; border-radius: 14px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden; }
         input, select, button { width: 100%; max-width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #e5e5ea; border-radius: 10px; font-size: 16px; box-sizing: border-box; background-color: #ffffff; display: block; }
         input[type="date"] { -webkit-appearance: none; appearance: none; min-width: 0; }
-        .btn-primary { background: #007aff; color: white; border: none; font-weight: bold; padding: 14px; cursor: pointer; }
-        .btn-plan { background: #5856d6; color: white; border: none; font-weight: bold; padding: 14px; cursor: pointer; }
+        .btn-primary { background: #007aff; color: white; border: none; font-weight: bold; padding: 14px; cursor: pointer; margin-bottom: 0; }
+        .btn-plan { background: #5856d6; color: white; border: none; font-weight: bold; padding: 14px; cursor: pointer; margin-bottom: 0; }
         .btn-warning { background: #ff9500 !important; color: white; }
-        .btn-cancel { background: #8e8e93; color: white; border: none; font-weight: bold; padding: 12px; cursor: pointer; display: none; margin-bottom: 0; }
+        .btn-cancel { background: #8e8e93; color: white; border: none; font-weight: bold; padding: 12px; cursor: pointer; display: none; margin-top: 10px; margin-bottom: 0; }
         optgroup { font-weight: bold; color: #8e8e93; }
 
         .list { list-style: none; padding: 0; margin: 0; }
@@ -103,7 +108,7 @@
     
     <!-- TELA 1: DASHBOARD -->
     <div id="view-dashboard" class="view active">
-        <h2>Dashboard v5.0</h2>
+        <h2>Dashboard v5.4</h2>
         
         <div class="filter-section">
             <select id="filter-month" onchange="renderDashboard()">
@@ -124,20 +129,17 @@
             <select id="filter-year" onchange="renderDashboard()"></select>
         </div>
 
-        <!-- 1. Gráfico de Barras: Income vs Expenses do Período -->
         <div class="chart-container">
             <div class="chart-box-title">Period Overview: Income vs Expenses</div>
             <div id="dash-inc-exp-chart"></div>
         </div>
 
-        <!-- 2. Gráfico de Pizza: Actual Expenses por Categoria (%) -->
         <div class="chart-container">
             <div class="chart-box-title">Actual Expenses Breakdown (%)</div>
             <div id="dash-pie-area"></div>
         </div>
 
-        <!-- 3. Barra Única Colapsável para os Cards e Detalhes -->
-        <div class="collapse-bar" id="dash-collapse-btn" onclick="toggleDashDetails()">
+        <div class="collapse-bar" id="dash-collapse-btn" onclick="toggleSection('dash-collapse-btn', 'dash-collapsible-area')">
             <span>Summary Cards & Category Comparison</span>
             <span class="arrow">▼</span>
         </div>
@@ -181,61 +183,36 @@
             </div>
         </div>
 
-        <div class="form-section">
-            <form id="transaction-form">
-                <input type="date" id="date" required>
-                <input type="text" id="description" placeholder="Description (e.g., Groceries)" required>
-                <input type="number" id="amount" placeholder="Amount ($)" step="0.01" required>
-                <select id="type">
-                    <option value="expense" selected>Expense (-)</option>
-                    <option value="income">Income (+)</option>
-                </select>
-                <select id="category">
-                    <optgroup label="Income">
-                        <option value="Salary / Wages">Salary / Wages</option>
-                        <option value="Side Hustle / Freelance">Side Hustle / Freelance</option>
-                        <option value="Returns / Dividends">Returns / Dividends</option>
-                        <option value="Other Income">Other Income</option>
-                    </optgroup>
-                    <optgroup label="Housing & Utilities">
-                        <option value="Rent / Mortgage">Rent / Mortgage</option>
-                        <option value="Utilities">Utilities (Water, Gas, Power)</option>
-                        <option value="Internet & Phone">Internet & Phone</option>
-                        <option value="Home Maintenance">Home Maintenance</option>
-                    </optgroup>
-                    <optgroup label="Food & Dining">
-                        <option value="Groceries">Groceries</option>
-                        <option value="Dining Out">Dining Out & Delivery</option>
-                    </optgroup>
-                    <optgroup label="Transportation">
-                        <option value="Gas & Transit">Gas & Public Transit</option>
-                        <option value="Car & Maintenance">Car Payment & Maintenance</option>
-                    </optgroup>
-                    <optgroup label="Health & Lifestyle">
-                        <option value="Medical & Pharmacy">Medical & Pharmacy</option>
-                        <option value="Gym & Fitness">Gym & Fitness</option>
-                        <option value="Personal Care">Personal Care</option>
-                        <option value="Subscriptions">Subscriptions & Streaming</option>
-                        <option value="Shopping & Entertainment">Shopping & Entertainment</option>
-                        <option value="Travel">Travel</option>
-                        <option value="Other">Other (Gifts, etc.)</option>
-                    </optgroup>
-                    <optgroup label="Savings & Obligations">
-                        <option value="Insurance">Insurance (Auto, Home, Life)</option>
-                        <option value="Debt & Loans">Debt & Loans</option>
-                        <option value="Taxes">Taxes</option>
-                        <option value="Allowance">Allowance (Family)</option>
-                        <option value="Emergency Fund & Investments">Savings & Investments</option>
-                        <option value="Education">Courses & Education</option>
-                    </optgroup>
-                </select>
-                <button type="submit" id="btn-submit-tx" class="btn-primary">Add Transaction</button>
-                <button type="button" id="btn-cancel-tx" class="btn-cancel" onclick="cancelEditTx()">Cancel Edit</button>
-            </form>
+        <div class="collapse-bar" id="tx-form-collapse-btn" onclick="toggleSection('tx-form-collapse-btn', 'tx-form-collapsible-area')">
+            <span>Add / Edit Transaction</span>
+            <span class="arrow">▼</span>
         </div>
 
-        <h3>Recent Activity</h3>
-        <ul id="transaction-list" class="list"></ul>
+        <div class="collapsible-content" id="tx-form-collapsible-area">
+            <div class="form-section">
+                <form id="transaction-form">
+                    <input type="date" id="date" required>
+                    <select id="type" onchange="updateCategoryOptions('type', 'category')">
+                        <option value="expense" selected>Expense (-)</option>
+                        <option value="income">Income (+)</option>
+                    </select>
+                    <select id="category" required></select>
+                    <input type="number" id="amount" placeholder="Amount ($)" step="0.01" required>
+                    <input type="text" id="description" placeholder="Description (e.g., Groceries)" required>
+                    <button type="submit" id="btn-submit-tx" class="btn-primary">Add Transaction</button>
+                    <button type="button" id="btn-cancel-tx" class="btn-cancel" onclick="cancelEditTx()">Cancel Edit</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="collapse-bar" id="tx-list-collapse-btn" onclick="toggleSection('tx-list-collapse-btn', 'tx-list-collapsible-area')">
+            <span>Recent Activity List</span>
+            <span class="arrow">▼</span>
+        </div>
+
+        <div class="collapsible-content" id="tx-list-collapsible-area">
+            <ul id="transaction-list" class="list"></ul>
+        </div>
     </div>
 
     <!-- TELA 3: PLANNING -->
@@ -275,67 +252,41 @@
             </div>
         </div>
 
-        <!-- Gráfico de Pizza do Planejamento (Planned Expenses %) -->
         <div class="chart-container">
             <div class="chart-box-title">Planned Expenses Breakdown (%)</div>
             <div id="plan-pie-area"></div>
         </div>
 
-        <div class="form-section">
-            <form id="plan-form">
-                <input type="date" id="plan-date" required>
-                <select id="plan-category">
-                    <optgroup label="Housing & Utilities">
-                        <option value="Rent / Mortgage">Rent / Mortgage</option>
-                        <option value="Utilities">Utilities (Water, Gas, Power)</option>
-                        <option value="Internet & Phone">Internet & Phone</option>
-                        <option value="Home Maintenance">Home Maintenance</option>
-                    </optgroup>
-                    <optgroup label="Food & Dining">
-                        <option value="Groceries">Groceries</option>
-                        <option value="Dining Out">Dining Out & Delivery</option>
-                    </optgroup>
-                    <optgroup label="Transportation">
-                        <option value="Gas & Transit">Gas & Public Transit</option>
-                        <option value="Car & Maintenance">Car Payment & Maintenance</option>
-                    </optgroup>
-                    <optgroup label="Health & Lifestyle">
-                        <option value="Medical & Pharmacy">Medical & Pharmacy</option>
-                        <option value="Gym & Fitness">Gym & Fitness</option>
-                        <option value="Personal Care">Personal Care</option>
-                        <option value="Subscriptions">Subscriptions & Streaming</option>
-                        <option value="Shopping & Entertainment">Shopping & Entertainment</option>
-                        <option value="Travel">Travel</option>
-                        <option value="Other">Other (Gifts, etc.)</option>
-                    </optgroup>
-                    <optgroup label="Savings & Obligations">
-                        <option value="Insurance">Insurance (Auto, Home, Life)</option>
-                        <option value="Debt & Loans">Debt & Loans</option>
-                        <option value="Taxes">Taxes</option>
-                        <option value="Allowance">Allowance (Family)</option>
-                        <option value="Emergency Fund & Investments">Savings & Investments</option>
-                        <option value="Education">Courses & Education</option>
-                    </optgroup>
-                    <optgroup label="Income">
-                        <option value="Salary / Wages">Salary / Wages</option>
-                        <option value="Side Hustle / Freelance">Side Hustle / Freelance</option>
-                        <option value="Returns / Dividends">Returns / Dividends</option>
-                        <option value="Other Income">Other Income</option>
-                    </optgroup>
-                </select>
-                <select id="plan-type">
-                    <option value="expense" selected>Expense (-)</option>
-                    <option value="income">Income (+)</option>
-                </select>
-                <input type="number" id="plan-amount" placeholder="Expected Amount ($)" step="0.01" required>
-                <input type="text" id="plan-description" placeholder="Optional Note (e.g., Aldi / Costco)">
-                <button type="submit" id="btn-submit-plan" class="btn-plan">Add to Plan</button>
-                <button type="button" id="btn-cancel-plan" class="btn-cancel" onclick="cancelEditPlan()">Cancel Edit</button>
-            </form>
+        <div class="collapse-bar plan-theme" id="plan-form-collapse-btn" onclick="toggleSection('plan-form-collapse-btn', 'plan-form-collapsible-area')">
+            <span id="plan-form-bar-title">Add / Edit Plan Item</span>
+            <span class="arrow">▼</span>
         </div>
 
-        <h3>Budget Items</h3>
-        <ul id="plan-list" class="list"></ul>
+        <div class="collapsible-content" id="plan-form-collapsible-area">
+            <div class="form-section">
+                <form id="plan-form">
+                    <input type="date" id="plan-date" required>
+                    <select id="plan-type" onchange="updateCategoryOptions('plan-type', 'plan-category')">
+                        <option value="expense" selected>Expense (-)</option>
+                        <option value="income">Income (+)</option>
+                    </select>
+                    <select id="plan-category" required></select>
+                    <input type="number" id="plan-amount" placeholder="Expected Amount ($)" step="0.01" required>
+                    <input type="text" id="plan-description" placeholder="Optional Note (e.g., Aldi / Costco)">
+                    <button type="submit" id="btn-submit-plan" class="btn-plan">Add to Plan</button>
+                    <button type="button" id="btn-cancel-plan" class="btn-cancel" onclick="cancelEditPlan()">Cancel Edit</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="collapse-bar plan-theme" id="plan-list-collapse-btn" onclick="toggleSection('plan-list-collapse-btn', 'plan-list-collapsible-area')">
+            <span>Budget Items List</span>
+            <span class="arrow">▼</span>
+        </div>
+
+        <div class="collapsible-content" id="plan-list-collapsible-area">
+            <ul id="plan-list" class="list"></ul>
+        </div>
     </div>
 
     <!-- TELA 4: HISTORY -->
@@ -362,8 +313,14 @@
             <button type="button" class="btn-filter-clear" onclick="clearHistoryFilters()">Show All</button>
         </div>
 
-        <div class="export-section">
-            <button type="button" class="btn-export" onclick="exportToCSV()">📥 Export to CSV</button>
+        <!-- Seção de Ações: Backup Completo JSON & Exportação CSV -->
+        <div class="actions-section">
+            <button type="button" class="btn-action btn-backup-save" onclick="exportCompleteBackup()">💾 Save Backup (.json)</button>
+            <label class="btn-action btn-backup-load">
+                📥 Restore Backup
+                <input type="file" id="backup-file-input" accept=".json" onchange="importCompleteBackup(event)" style="display:none;">
+            </label>
+            <button type="button" class="btn-action btn-csv" onclick="exportToCSV()">📄 Export to CSV (Spreadsheet)</button>
         </div>
 
         <div class="excel-table-container">
@@ -407,6 +364,89 @@
         '#a2845e', '#8e8e93', '#32ade6', '#ff6b6b', '#4cd964'
     ];
 
+    const CATEGORIES_BY_TYPE = {
+        income: [
+            {
+                group: 'Income',
+                options: [
+                    'Salary / Wages',
+                    'Side Hustle / Freelance',
+                    'Returns / Dividends',
+                    'Other Income'
+                ]
+            }
+        ],
+        expense: [
+            {
+                group: 'Housing & Utilities',
+                options: [
+                    'Rent / Mortgage',
+                    'Utilities',
+                    'Internet & Phone',
+                    'Home Maintenance'
+                ]
+            },
+            {
+                group: 'Food & Dining',
+                options: [
+                    'Groceries',
+                    'Dining Out'
+                ]
+            },
+            {
+                group: 'Transportation',
+                options: [
+                    'Gas & Transit',
+                    'Car & Maintenance'
+                ]
+            },
+            {
+                group: 'Health & Lifestyle',
+                options: [
+                    'Medical & Pharmacy',
+                    'Gym & Fitness',
+                    'Personal Care',
+                    'Subscriptions',
+                    'Shopping & Entertainment',
+                    'Travel',
+                    'Other'
+                ]
+            },
+            {
+                group: 'Savings & Obligations',
+                options: [
+                    'Insurance',
+                    'Debt & Loans',
+                    'Taxes',
+                    'Allowance',
+                    'Emergency Fund & Investments',
+                    'Education'
+                ]
+            }
+        ]
+    };
+
+    function updateCategoryOptions(typeSelectId, categorySelectId, selectedCategory = '') {
+        const typeVal = document.getElementById(typeSelectId).value;
+        const catSelect = document.getElementById(categorySelectId);
+        const groups = CATEGORIES_BY_TYPE[typeVal] || [];
+
+        let html = '';
+        groups.forEach(g => {
+            html += `<optgroup label="${g.group}">`;
+            g.options.forEach(opt => {
+                const isSel = opt === selectedCategory ? 'selected' : '';
+                html += `<option value="${opt}" ${isSel}>${opt}</option>`;
+            });
+            html += `</optgroup>`;
+        });
+
+        catSelect.innerHTML = html;
+        if (selectedCategory && catSelect.value !== selectedCategory) {
+            catSelect.value = selectedCategory;
+        }
+    }
+
     function getTodayLocal() {
         const d = new Date();
         return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -418,14 +458,18 @@
         if (editingPlanIndex === -1) document.getElementById('plan-date').value = today;
     }
 
-    function toggleDashDetails() {
-        const btn = document.getElementById('dash-collapse-btn');
-        const area = document.getElementById('dash-collapsible-area');
-        btn.classList.toggle('open');
-        area.classList.toggle('open');
+    function toggleSection(btnId, contentId, forceOpen = false) {
+        const btn = document.getElementById(btnId);
+        const area = document.getElementById(contentId);
+        if (forceOpen) {
+            btn.classList.add('open');
+            area.classList.add('open');
+        } else {
+            btn.classList.toggle('open');
+            area.classList.toggle('open');
+        }
     }
 
-    // Função geradora de Gráfico de Pizza com Rótulos Percentuais
     function renderPieChart(containerId, categoryAmountsMap) {
         const container = document.getElementById(containerId);
         const entries = Object.entries(categoryAmountsMap)
@@ -586,7 +630,6 @@
             if (p.type === 'income') planInc += v; else planExp += v;
         });
 
-        // Atualizar Gráfico 1: Barras Income vs Expenses
         const maxIncExp = Math.max(actInc, actExp, 10);
         const incHeight = Math.round((actInc / maxIncExp) * 100);
         const expHeight = Math.round((actExp / maxIncExp) * 100);
@@ -607,10 +650,8 @@
             </div>
         `;
 
-        // Atualizar Gráfico 2: Pizza de Actual Expenses por Categoria
         renderPieChart('dash-pie-area', actualExpensesByCat);
 
-        // Atualizar Cards dentro da seção colapsável
         document.getElementById('dash-actual-inc').innerText = '$ ' + actInc.toFixed(2);
         document.getElementById('dash-actual-exp').innerText = '$ ' + actExp.toFixed(2);
         const netActual = actInc - actExp;
@@ -680,6 +721,10 @@
         list.innerHTML = '';
         let inc = 0, exp = 0;
 
+        if (transactions.length === 0) {
+            list.innerHTML = '<li style="text-align:center;color:#8e8e93;padding:16px;">No transactions recorded yet.</li>';
+        }
+
         transactions.forEach((t, i) => {
             const val = parseFloat(t.amount) || 0;
             if (t.type === 'income') inc += val; else exp += val;
@@ -703,24 +748,27 @@
     window.editTx = function(index) {
         const t = transactions[index];
         document.getElementById('date').value = t.date;
-        document.getElementById('description').value = t.description;
-        document.getElementById('amount').value = t.amount;
         document.getElementById('type').value = t.type;
-        document.getElementById('category').value = t.category;
+        updateCategoryOptions('type', 'category', t.category);
+        document.getElementById('amount').value = t.amount;
+        document.getElementById('description').value = t.description;
 
         editingTxIndex = index;
         const submitBtn = document.getElementById('btn-submit-tx');
         submitBtn.innerText = 'Update Transaction';
         submitBtn.classList.add('btn-warning');
         document.getElementById('btn-cancel-tx').style.display = 'block';
+        
         switchView('trans');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        toggleSection('tx-form-collapse-btn', 'tx-form-collapsible-area', true);
+        document.getElementById('tx-form-collapse-btn').scrollIntoView({ behavior: 'smooth' });
     };
 
     window.cancelEditTx = function() {
         editingTxIndex = -1;
         document.getElementById('transaction-form').reset();
         document.getElementById('date').value = getTodayLocal();
+        updateCategoryOptions('type', 'category');
         const submitBtn = document.getElementById('btn-submit-tx');
         submitBtn.innerText = 'Add Transaction';
         submitBtn.classList.remove('btn-warning');
@@ -740,10 +788,10 @@
         e.preventDefault();
         const itemData = {
             date: document.getElementById('date').value || getTodayLocal(),
-            description: document.getElementById('description').value,
-            amount: parseFloat(document.getElementById('amount').value) || 0,
             type: document.getElementById('type').value,
-            category: document.getElementById('category').value
+            category: document.getElementById('category').value,
+            amount: parseFloat(document.getElementById('amount').value) || 0,
+            description: document.getElementById('description').value
         };
 
         if (editingTxIndex > -1) {
@@ -753,6 +801,7 @@
             transactions.push(itemData);
             this.reset();
             document.getElementById('date').value = getTodayLocal();
+            updateCategoryOptions('type', 'category');
         }
         document.getElementById('amount').blur();
         renderTransactions();
@@ -760,7 +809,7 @@
         renderDashboard();
     });
 
-    // 3. PLANNING (COM GRÁFICO DE PIZZA DE DESPESAS PLANEJADAS)
+    // 3. PLANNING
     function renderPlanning() {
         const selMonth = document.getElementById('plan-filter-month').value;
         const selYear = document.getElementById('plan-filter-year').value;
@@ -770,6 +819,10 @@
         list.innerHTML = '';
         let inc = 0, exp = 0;
         const plannedExpensesByCat = {};
+
+        if (effectiveList.length === 0) {
+            list.innerHTML = '<li style="text-align:center;color:#8e8e93;padding:16px;">No budget items planned for this period.</li>';
+        }
 
         effectiveList.forEach((p) => {
             const val = parseFloat(p.amount) || 0;
@@ -796,7 +849,6 @@
         document.getElementById('plan-total-expense').innerText = '$ ' + exp.toFixed(2);
         document.getElementById('plan-total-balance').innerText = '$ ' + (inc - exp).toFixed(2);
         
-        // Renderizar Pizza do Planning
         renderPieChart('plan-pie-area', plannedExpensesByCat);
 
         localStorage.setItem('app_plan_v2', JSON.stringify(planItems));
@@ -820,8 +872,8 @@
     window.editPlan = function(index) {
         const p = planItems[index];
         document.getElementById('plan-date').value = p.date;
-        document.getElementById('plan-category').value = p.category;
         document.getElementById('plan-type').value = p.type;
+        updateCategoryOptions('plan-type', 'plan-category', p.category);
         document.getElementById('plan-amount').value = p.amount;
         document.getElementById('plan-description').value = p.description || '';
 
@@ -830,13 +882,16 @@
         submitBtn.innerText = 'Update Plan Item';
         submitBtn.classList.add('btn-warning');
         document.getElementById('btn-cancel-plan').style.display = 'block';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        toggleSection('plan-form-collapse-btn', 'plan-form-collapsible-area', true);
+        document.getElementById('plan-form-collapse-btn').scrollIntoView({ behavior: 'smooth' });
     };
 
     window.cancelEditPlan = function() {
         editingPlanIndex = -1;
         document.getElementById('plan-form').reset();
         document.getElementById('plan-date').value = getTodayLocal();
+        updateCategoryOptions('plan-type', 'plan-category');
         const submitBtn = document.getElementById('btn-submit-plan');
         submitBtn.innerText = 'Add to Plan';
         submitBtn.classList.remove('btn-warning');
@@ -847,8 +902,8 @@
         e.preventDefault();
         const itemData = {
             date: document.getElementById('plan-date').value || getTodayLocal(),
-            category: document.getElementById('plan-category').value,
             type: document.getElementById('plan-type').value,
+            category: document.getElementById('plan-category').value,
             amount: parseFloat(document.getElementById('plan-amount').value) || 0,
             description: document.getElementById('plan-description').value.trim()
         };
@@ -860,6 +915,7 @@
             planItems.push(itemData);
             this.reset();
             document.getElementById('plan-date').value = getTodayLocal();
+            updateCategoryOptions('plan-type', 'plan-category');
         }
         document.getElementById('plan-amount').blur();
         document.getElementById('plan-description').blur();
@@ -867,7 +923,7 @@
         renderDashboard();
     });
 
-    // 4. HISTORY
+    // 4. HISTORY & BACKUP
     function renderHistory() {
         const selMonth = document.getElementById('hist-filter-month').value;
         const selYear = document.getElementById('hist-filter-year').value;
@@ -921,6 +977,7 @@
         renderHistory();
     }
 
+    // Exportação em formato de Planilha (CSV)
     function exportToCSV() {
         if (transactions.length === 0) {
             alert('No transactions to export.');
@@ -928,7 +985,6 @@
         }
 
         let csvContent = 'Date,Type,Category,Description,Amount\n';
-        
         transactions.forEach(t => {
             const row = [t.date, t.type, `"${t.category}"`, `"${t.description || ''}"`, t.amount];
             csvContent += row.join(',') + '\n';
@@ -938,14 +994,69 @@
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.setAttribute('href', url);
-        link.setAttribute('download', 'budget_transactions.csv');
+        link.setAttribute('download', `budget_transactions_${getTodayLocal()}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
     }
 
+    // Exportar Backup Completo JSON
+    function exportCompleteBackup() {
+        const backupData = {
+            version: '5.4',
+            exportDate: new Date().toISOString(),
+            transactions: transactions,
+            planning: planItems
+        };
+
+        const jsonStr = JSON.stringify(backupData, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `budget_complete_backup_${getTodayLocal()}.json`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+
+    // Importar / Restaurar Backup Completo JSON
+    function importCompleteBackup(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const parsed = JSON.parse(e.target.result);
+                if (parsed.transactions && Array.isArray(parsed.transactions)) {
+                    transactions = parsed.transactions;
+                    localStorage.setItem('app_transactions_v2', JSON.stringify(transactions));
+                }
+                if (parsed.planning && Array.isArray(parsed.planning)) {
+                    planItems = parsed.planning;
+                    localStorage.setItem('app_plan_v2', JSON.stringify(planItems));
+                }
+
+                renderTransactions();
+                renderPlanning();
+                renderDashboard();
+                renderHistory();
+                alert('Backup restored successfully!');
+            } catch (err) {
+                alert('Invalid backup file. Please select a valid JSON backup.');
+            }
+            // Limpa o seletor de arquivo para permitir recarregar o mesmo se necessário
+            event.target.value = '';
+        };
+        reader.readAsText(file);
+    }
+
     // INICIAR
+    updateCategoryOptions('type', 'category');
+    updateCategoryOptions('plan-type', 'plan-category');
     refreshDefaultDates();
     renderTransactions();
     renderPlanning();
