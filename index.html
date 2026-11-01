@@ -189,4 +189,616 @@
         </div>
 
         <h3>Recent Activity</h3>
-        <ul id="transaction-list
+        <ul id="transaction-list" class="list"></ul>
+    </div>
+
+    <!-- TELA 3: PLANNING -->
+    <div id="view-planning" class="view">
+        <h2>Monthly Plan</h2>
+
+        <div class="filter-section">
+            <select id="plan-filter-month" onchange="renderPlanning()">
+                <option value="01">January</option>
+                <option value="02">February</option>
+                <option value="03">March</option>
+                <option value="04">April</option>
+                <option value="05">May</option>
+                <option value="06">June</option>
+                <option value="07">July</option>
+                <option value="08">August</option>
+                <option value="09">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+            </select>
+            <select id="plan-filter-year" onchange="renderPlanning()">
+            </select>
+        </div>
+
+        <div class="dashboard">
+            <div class="card plan-balance">
+                <h3>Expected Balance</h3>
+                <p id="plan-total-balance">$ 0.00</p>
+            </div>
+            <div class="card">
+                <h3>Expected Income</h3>
+                <p id="plan-total-income" class="text-green">$ 0.00</p>
+            </div>
+            <div class="card">
+                <h3>Expected Expenses</h3>
+                <p id="plan-total-expense" class="text-red">$ 0.00</p>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <form id="plan-form">
+                <input type="date" id="plan-date" required>
+                <select id="plan-category">
+                    <optgroup label="Housing & Utilities">
+                        <option value="Rent / Mortgage">Rent / Mortgage</option>
+                        <option value="Utilities">Utilities (Water, Gas, Power)</option>
+                        <option value="Internet & Phone">Internet & Phone</option>
+                        <option value="Home Maintenance">Home Maintenance</option>
+                    </optgroup>
+                    <optgroup label="Food & Dining">
+                        <option value="Groceries">Groceries</option>
+                        <option value="Dining Out">Dining Out & Delivery</option>
+                    </optgroup>
+                    <optgroup label="Transportation">
+                        <option value="Gas & Transit">Gas & Public Transit</option>
+                        <option value="Car & Maintenance">Car Payment & Maintenance</option>
+                    </optgroup>
+                    <optgroup label="Health & Lifestyle">
+                        <option value="Medical & Pharmacy">Medical & Pharmacy</option>
+                        <option value="Gym & Fitness">Gym & Fitness</option>
+                        <option value="Personal Care">Personal Care</option>
+                        <option value="Subscriptions">Subscriptions & Streaming</option>
+                        <option value="Shopping & Entertainment">Shopping & Entertainment</option>
+                        <option value="Travel">Travel</option>
+                    </optgroup>
+                    <optgroup label="Savings & Obligations">
+                        <option value="Insurance">Insurance (Auto, Home, Life)</option>
+                        <option value="Debt & Loans">Debt & Loans</option>
+                        <option value="Taxes">Taxes</option>
+                        <option value="Emergency Fund & Investments">Savings & Investments</option>
+                        <option value="Education">Courses & Education</option>
+                    </optgroup>
+                    <optgroup label="Income">
+                        <option value="Salary / Wages">Salary / Wages</option>
+                        <option value="Side Hustle / Freelance">Side Hustle / Freelance</option>
+                        <option value="Returns / Dividends">Returns / Dividends</option>
+                        <option value="Other Income">Other Income</option>
+                    </optgroup>
+                </select>
+                <select id="plan-type">
+                    <option value="expense" selected>Expense (-)</option>
+                    <option value="income">Income (+)</option>
+                </select>
+                <input type="number" id="plan-amount" placeholder="Expected Amount ($)" step="0.01" required>
+                <input type="text" id="plan-description" placeholder="Optional Note (e.g., Aldi / Costco)">
+                <button type="submit" id="btn-submit-plan" class="btn-plan">Add to Plan</button>
+                <button type="button" id="btn-cancel-plan" class="btn-cancel" onclick="cancelEditPlan()">Cancel Edit</button>
+            </form>
+        </div>
+
+        <h3>Budget Items</h3>
+        <ul id="plan-list" class="list"></ul>
+    </div>
+
+    <!-- TELA 4: HISTORY -->
+    <div id="view-history" class="view">
+        <h2>Transactions History</h2>
+        
+        <div class="filter-section">
+            <select id="hist-filter-month" onchange="renderHistory()">
+                <option value="ALL">All Months</option>
+                <option value="01">January</option>
+                <option value="02">February</option>
+                <option value="03">March</option>
+                <option value="04">April</option>
+                <option value="05">May</option>
+                <option value="06">June</option>
+                <option value="07">July</option>
+                <option value="08">August</option>
+                <option value="09">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+            </select>
+            <select id="hist-filter-year" onchange="renderHistory()">
+            </select>
+            <button type="button" class="btn-filter-clear" onclick="clearHistoryFilters()">Show All</button>
+        </div>
+
+        <div class="export-section">
+            <button type="button" class="btn-export" onclick="exportToCSV()">📥 Export to CSV</button>
+        </div>
+
+        <div class="excel-table-container">
+            <table class="excel-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="history-table-body">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- BARRA DE NAVEGAÇÃO -->
+<nav class="bottom-nav">
+    <button type="button" class="nav-item active" id="btn-nav-dash">
+        <span>📊</span> Dashboard
+    </button>
+    <button type="button" class="nav-item" id="btn-nav-trans">
+        <span>💳</span> Trans.
+    </button>
+    <button type="button" class="nav-item" id="btn-nav-plan">
+        <span>📋</span> Planning
+    </button>
+    <button type="button" class="nav-item" id="btn-nav-hist">
+        <span>📑</span> History
+    </button>
+</nav>
+
+<script>
+    function getTodayLocal() {
+        const d = new Date();
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    function refreshDefaultDates() {
+        const today = getTodayLocal();
+        if (editingTxIndex === -1) document.getElementById('date').value = today;
+        if (editingPlanIndex === -1) document.getElementById('plan-date').value = today;
+    }
+
+    const currentYearStr = new Date().getFullYear().toString();
+    const currentMonthStr = String(new Date().getMonth() + 1).padStart(2, '0');
+
+    const yearSelect = document.getElementById('filter-year');
+    const planYearSelect = document.getElementById('plan-filter-year');
+    const histYearSelect = document.getElementById('hist-filter-year');
+    
+    let yearOptionsHTML = '';
+    for (let y = 2024; y <= 2030; y++) {
+        yearOptionsHTML += `<option value="${y}" ${y.toString() === currentYearStr ? 'selected' : ''}>${y}</option>`;
+    }
+    yearSelect.innerHTML = yearOptionsHTML;
+    planYearSelect.innerHTML = yearOptionsHTML;
+    histYearSelect.innerHTML = yearOptionsHTML;
+
+    document.getElementById('filter-month').value = currentMonthStr;
+    document.getElementById('plan-filter-month').value = currentMonthStr;
+    document.getElementById('hist-filter-month').value = currentMonthStr;
+
+    let editingTxIndex = -1;
+    let editingPlanIndex = -1;
+
+    const viewDash = document.getElementById('view-dashboard');
+    const viewTrans = document.getElementById('view-transactions');
+    const viewPlan = document.getElementById('view-planning');
+    const viewHist = document.getElementById('view-history');
+    
+    const btnDash = document.getElementById('btn-nav-dash');
+    const btnTrans = document.getElementById('btn-nav-trans');
+    const btnPlan = document.getElementById('btn-nav-plan');
+    const btnHist = document.getElementById('btn-nav-hist');
+
+    function switchView(target) {
+        viewDash.classList.remove('active');
+        viewTrans.classList.remove('active');
+        viewPlan.classList.remove('active');
+        viewHist.classList.remove('active');
+        
+        btnDash.classList.remove('active');
+        btnTrans.classList.remove('active');
+        btnPlan.classList.remove('active');
+        btnHist.classList.remove('active');
+
+        if(target === 'dash') { viewDash.classList.add('active'); btnDash.classList.add('active'); renderDashboard(); }
+        if(target === 'trans') { viewTrans.classList.add('active'); btnTrans.classList.add('active'); renderTransactions(); }
+        if(target === 'plan') { viewPlan.classList.add('active'); btnPlan.classList.add('active'); renderPlanning(); }
+        if(target === 'hist') { viewHist.classList.add('active'); btnHist.classList.add('active'); renderHistory(); }
+        
+        refreshDefaultDates();
+        window.scrollTo(0, 0);
+    }
+
+    btnDash.addEventListener('click', () => switchView('dash'));
+    btnTrans.addEventListener('click', () => switchView('trans'));
+    btnPlan.addEventListener('click', () => switchView('plan'));
+    btnHist.addEventListener('click', () => switchView('hist'));
+
+    window.addEventListener('focus', refreshDefaultDates);
+
+    let transactions = JSON.parse(localStorage.getItem('app_transactions_v2')) || [];
+    let planItems = JSON.parse(localStorage.getItem('app_plan_v2')) || [];
+
+    function getEffectivePlanForMonth(targetYear, targetMonth) {
+        const targetValue = parseInt(targetYear) * 12 + parseInt(targetMonth);
+        const map = {};
+        const sorted = [...planItems].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        sorted.forEach(p => {
+            if (!p.date) return;
+            const [y, m] = p.date.split('-');
+            const itemValue = parseInt(y) * 12 + parseInt(m);
+            if (itemValue <= targetValue) {
+                if (!map[p.category]) {
+                    map[p.category] = { ...p, amount: parseFloat(p.amount) || 0 };
+                } else {
+                    map[p.category].amount += (parseFloat(p.amount) || 0);
+                }
+            }
+        });
+        return Object.values(map);
+    }
+
+    // 1. DASHBOARD
+    function renderDashboard() {
+        const selectedMonth = document.getElementById('filter-month').value;
+        const selectedYear = document.getElementById('filter-year').value;
+
+        const filteredTx = transactions.filter(t => {
+            if (!t.date) return false;
+            const [y, m] = t.date.split('-');
+            if (y !== selectedYear) return false;
+            if (selectedMonth !== 'ALL' && m !== selectedMonth) return false;
+            return true;
+        });
+
+        let effectivePlan = selectedMonth !== 'ALL' ? getEffectivePlanForMonth(selectedYear, selectedMonth) : getEffectivePlanForMonth(selectedYear, '12');
+
+        let actInc = 0, actExp = 0;
+        filteredTx.forEach(t => {
+            const v = parseFloat(t.amount) || 0;
+            if (t.type === 'income') actInc += v; else actExp += v;
+        });
+
+        let planInc = 0, planExp = 0;
+        effectivePlan.forEach(p => {
+            const v = parseFloat(p.amount) || 0;
+            if (p.type === 'income') planInc += v; else planExp += v;
+        });
+
+        document.getElementById('dash-actual-inc').innerText = '$ ' + actInc.toFixed(2);
+        document.getElementById('dash-actual-exp').innerText = '$ ' + actExp.toFixed(2);
+        const netActual = actInc - actExp;
+        const netPlan = planInc - planExp;
+        document.getElementById('dash-net-balance').innerText = '$ ' + netActual.toFixed(2) + ' (Exp: $' + netPlan.toFixed(2) + ')';
+
+        const categoryMap = {};
+        
+        effectivePlan.forEach(p => {
+            if (!categoryMap[p.category]) categoryMap[p.category] = { planned: 0, actual: 0 };
+            categoryMap[p.category].planned += (parseFloat(p.amount) || 0);
+        });
+
+        filteredTx.forEach(t => {
+            if (!categoryMap[t.category]) categoryMap[t.category] = { planned: 0, actual: 0 };
+            categoryMap[t.category].actual += (parseFloat(t.amount) || 0);
+        });
+
+        const chartArea = document.getElementById('chart-area');
+        chartArea.innerHTML = '';
+
+        let categories = Object.keys(categoryMap).filter(cat => {
+            return categoryMap[cat].planned > 0 || categoryMap[cat].actual > 0;
+        });
+
+        categories.sort((a, b) => categoryMap[b].planned - categoryMap[a].planned);
+
+        if (categories.length === 0) {
+            chartArea.innerHTML = '<p style="text-align:center;color:#8e8e93;margin:20px 0;">No active categories for this period.</p>';
+            return;
+        }
+
+        categories.forEach(cat => {
+            const data = categoryMap[cat];
+            const maxVal = Math.max(data.planned, data.actual, 10);
+            const planHeight = Math.round((data.planned / maxVal) * 100);
+            const actHeight = Math.round((data.actual / maxVal) * 100);
+
+            const block = document.createElement('div');
+            block.className = 'chart-category-block';
+            block.innerHTML = `
+                <div class="chart-category-title">
+                    <span>${cat}</span>
+                    <span style="font-size:12px;color:#8e8e93;">Plan: $${data.planned.toFixed(0)} | Act: $${data.actual.toFixed(0)}</span>
+                </div>
+                <div class="bars-wrapper">
+                    <div class="bar-group">
+                        <div class="bar bar-planned" style="height: ${planHeight}%;">
+                            <span class="bar-value">$${data.planned.toFixed(0)}</span>
+                        </div>
+                        <span class="bar-label">Planned</span>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar bar-actual" style="height: ${actHeight}%;">
+                            <span class="bar-value">$${data.actual.toFixed(0)}</span>
+                        </div>
+                        <span class="bar-label">Actual</span>
+                    </div>
+                </div>
+            `;
+            chartArea.appendChild(block);
+        });
+    }
+
+    // 2. TRANSACTIONS
+    function renderTransactions() {
+        const list = document.getElementById('transaction-list');
+        list.innerHTML = '';
+        let inc = 0, exp = 0;
+
+        transactions.forEach((t, i) => {
+            const val = parseFloat(t.amount) || 0;
+            if (t.type === 'income') inc += val; else exp += val;
+
+            const li = document.createElement('li');
+            li.className = 'item';
+            li.innerHTML = '<div class="item-info"><h4>' + t.description + '</h4><p>' + t.category + ' • ' + t.date + '</p></div>' +
+                           '<div class="action-buttons"><span class="' + (t.type === 'income' ? 'text-green' : 'text-red') + '">' +
+                           (t.type === 'income' ? '+' : '-') + '$ ' + val.toFixed(2) + '</span>' +
+                           '<button class="btn-edit" onclick="editTx(' + i + ')">Edit</button>' +
+                           '<button class="btn-delete" onclick="removeTx(' + i + ')">X</button></div>';
+            list.appendChild(li);
+        });
+
+        document.getElementById('total-income').innerText = '$ ' + inc.toFixed(2);
+        document.getElementById('total-expense').innerText = '$ ' + exp.toFixed(2);
+        document.getElementById('total-balance').innerText = '$ ' + (inc - exp).toFixed(2);
+        localStorage.setItem('app_transactions_v2', JSON.stringify(transactions));
+    }
+
+    window.editTx = function(index) {
+        const t = transactions[index];
+        document.getElementById('date').value = t.date;
+        document.getElementById('description').value = t.description;
+        document.getElementById('amount').value = t.amount;
+        document.getElementById('type').value = t.type;
+        document.getElementById('category').value = t.category;
+
+        editingTxIndex = index;
+        const submitBtn = document.getElementById('btn-submit-tx');
+        submitBtn.innerText = 'Update Transaction';
+        submitBtn.classList.add('btn-warning');
+        document.getElementById('btn-cancel-tx').style.display = 'block';
+        switchView('trans');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.cancelEditTx = function() {
+        editingTxIndex = -1;
+        document.getElementById('transaction-form').reset();
+        document.getElementById('date').value = getTodayLocal();
+        const submitBtn = document.getElementById('btn-submit-tx');
+        submitBtn.innerText = 'Add Transaction';
+        submitBtn.classList.remove('btn-warning');
+        document.getElementById('btn-cancel-tx').style.display = 'none';
+    };
+
+    window.removeTx = function(index) {
+        if (editingTxIndex === index) cancelEditTx();
+        else if (editingTxIndex > index) editingTxIndex--;
+        transactions.splice(index, 1);
+        renderTransactions();
+        renderHistory();
+        renderDashboard();
+    };
+
+    document.getElementById('transaction-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const itemData = {
+            date: document.getElementById('date').value || getTodayLocal(),
+            description: document.getElementById('description').value,
+            amount: parseFloat(document.getElementById('amount').value) || 0,
+            type: document.getElementById('type').value,
+            category: document.getElementById('category').value
+        };
+
+        if (editingTxIndex > -1) {
+            transactions[editingTxIndex] = itemData;
+            cancelEditTx();
+        } else {
+            transactions.push(itemData);
+            this.reset();
+            document.getElementById('date').value = getTodayLocal();
+        }
+        document.getElementById('amount').blur();
+        renderTransactions();
+        renderHistory();
+        renderDashboard();
+    });
+
+    // 3. PLANNING
+    function renderPlanning() {
+        const selMonth = document.getElementById('plan-filter-month').value;
+        const selYear = document.getElementById('plan-filter-year').value;
+        const effectiveList = getEffectivePlanForMonth(selYear, selMonth);
+
+        const list = document.getElementById('plan-list');
+        list.innerHTML = '';
+        let inc = 0, exp = 0;
+
+        effectiveList.forEach((p) => {
+            const val = parseFloat(p.amount) || 0;
+            if (p.type === 'income') inc += val; else exp += val;
+
+            const noteText = (p.description && p.description.trim() !== '') ? (p.description + ' • ') : '';
+
+            const li = document.createElement('li');
+            li.className = 'item';
+            li.innerHTML = '<div class="item-info"><h4>' + p.category + '</h4><p>' + noteText + p.date + '</p></div>' +
+                           '<div class="action-buttons"><span class="' + (p.type === 'income' ? 'text-green' : 'text-red') + '">' +
+                           (p.type === 'income' ? '+' : '-') + '$ ' + val.toFixed(2) + '</span>' +
+                           '<button class="btn-edit" onclick="editPlanByCat(\'' + p.category + '\')">Edit</button>' +
+                           '<button class="btn-delete" onclick="removePlanByCat(\'' + p.category + '\')">X</button></div>';
+            list.appendChild(li);
+        });
+
+        document.getElementById('plan-total-income').innerText = '$ ' + inc.toFixed(2);
+        document.getElementById('plan-total-expense').innerText = '$ ' + exp.toFixed(2);
+        document.getElementById('plan-total-balance').innerText = '$ ' + (inc - exp).toFixed(2);
+        localStorage.setItem('app_plan_v2', JSON.stringify(planItems));
+    }
+
+    window.editPlanByCat = function(categoryName) {
+        const index = planItems.findIndex(item => item.category === categoryName);
+        if (index > -1) editPlan(index);
+    }
+
+    window.removePlanByCat = function(categoryName) {
+        const index = planItems.findIndex(item => item.category === categoryName);
+        if (index > -1) {
+            if (editingPlanIndex === index) cancelEditPlan();
+            planItems.splice(index, 1);
+            renderPlanning();
+            renderDashboard();
+        }
+    }
+
+    window.editPlan = function(index) {
+        const p = planItems[index];
+        document.getElementById('plan-date').value = p.date;
+        document.getElementById('plan-category').value = p.category;
+        document.getElementById('plan-type').value = p.type;
+        document.getElementById('plan-amount').value = p.amount;
+        document.getElementById('plan-description').value = p.description || '';
+
+        editingPlanIndex = index;
+        const submitBtn = document.getElementById('btn-submit-plan');
+        submitBtn.innerText = 'Update Plan Item';
+        submitBtn.classList.add('btn-warning');
+        document.getElementById('btn-cancel-plan').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.cancelEditPlan = function() {
+        editingPlanIndex = -1;
+        document.getElementById('plan-form').reset();
+        document.getElementById('plan-date').value = getTodayLocal();
+        const submitBtn = document.getElementById('btn-submit-plan');
+        submitBtn.innerText = 'Add to Plan';
+        submitBtn.classList.remove('btn-warning');
+        document.getElementById('btn-cancel-plan').style.display = 'none';
+    };
+
+    document.getElementById('plan-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const itemData = {
+            date: document.getElementById('plan-date').value || getTodayLocal(),
+            category: document.getElementById('plan-category').value,
+            type: document.getElementById('plan-type').value,
+            amount: parseFloat(document.getElementById('plan-amount').value) || 0,
+            description: document.getElementById('plan-description').value.trim()
+        };
+
+        if (editingPlanIndex > -1) {
+            planItems[editingPlanIndex] = itemData;
+            cancelEditPlan();
+        } else {
+            planItems.push(itemData);
+            this.reset();
+            document.getElementById('plan-date').value = getTodayLocal();
+        }
+        document.getElementById('plan-amount').blur();
+        document.getElementById('plan-description').blur();
+        renderPlanning();
+        renderDashboard();
+    });
+
+    // 4. HISTORY
+    function renderHistory() {
+        const selMonth = document.getElementById('hist-filter-month').value;
+        const selYear = document.getElementById('hist-filter-year').value;
+        const tbody = document.getElementById('history-table-body');
+        tbody.innerHTML = '';
+
+        const filtered = transactions.filter(t => {
+            if (!t.date) return false;
+            const [y, m] = t.date.split('-');
+            if (y !== selYear) return false;
+            if (selMonth !== 'ALL' && m !== selMonth) return false;
+            return true;
+        });
+
+        const sortedWithIndex = filtered.map(t => {
+            const originalIndex = transactions.indexOf(t);
+            return { ...t, originalIndex };
+        });
+        sortedWithIndex.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        if (sortedWithIndex.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#8e8e93;padding:20px;">No transactions found for this period.</td></tr>';
+            return;
+        }
+
+        sortedWithIndex.forEach(item => {
+            const val = parseFloat(item.amount) || 0;
+            const isIncome = item.type === 'income';
+            const tr = document.createElement('tr');
+            
+            tr.innerHTML = `
+                <td style="white-space:nowrap;">${item.date}</td>
+                <td>${item.category}</td>
+                <td>${item.description}</td>
+                <td class="${isIncome ? 'text-green' : 'text-red'}" style="font-weight:bold;white-space:nowrap;">
+                    ${isIncome ? '+' : '-'}$${val.toFixed(2)}
+                </td>
+                <td>
+                    <div class="table-btns">
+                        <button class="btn-table-edit" onclick="editTx(${item.originalIndex})">Edit</button>
+                        <button class="btn-table-del" onclick="removeTx(${item.originalIndex})">X</button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function clearHistoryFilters() {
+        document.getElementById('hist-filter-month').value = 'ALL';
+        renderHistory();
+    }
+
+    function exportToCSV() {
+        if (transactions.length === 0) {
+            alert('No transactions to export.');
+            return;
+        }
+
+        let csvContent = 'data:text/csv;charset=utf-8,Date,Type,Category,Description,Amount\n';
+        
+        transactions.forEach(t => {
+            const row = [t.date, t.type, `"${t.category}"`, `"${t.description || ''}"`, t.amount];
+            csvContent += row.join(',') + '\n';
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute('download', 'budget_transactions.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // INICIAR
+    refreshDefaultDates();
+    renderTransactions();
+    renderPlanning();
+    renderDashboard();
+    renderHistory();
+</script>
+</body>
+</html>
