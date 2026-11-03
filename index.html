@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Budget Manager v5.4</title>
+    <title>Budget Manager v5.7</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f2f2f7; margin: 0; padding: 16px; color: #1c1c1e; padding-bottom: 90px; }
         .container { max-width: 600px; margin: 0 auto; }
@@ -27,7 +27,17 @@
         .filter-section select { margin-bottom: 0; flex: 1; }
         .btn-filter-clear { background: #8e8e93; color: white; border: none; padding: 12px 14px; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; white-space: nowrap; width: auto; margin-bottom: 0; }
 
-        /* Ações e Backups no History */
+        /* Card Preditivo de Fechamento */
+        .forecast-card { background: linear-gradient(135deg, #1c1c1e, #2c2c2e); color: #ffffff; padding: 18px; border-radius: 16px; margin-bottom: 16px; box-shadow: 0 4px 14px rgba(0,0,0,0.12); }
+        .forecast-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .forecast-title { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8; }
+        .forecast-badge { font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 8px; background: rgba(255,255,255,0.15); }
+        .forecast-main-val { font-size: 30px; font-weight: 800; margin: 0 0 4px 0; letter-spacing: -0.5px; }
+        .forecast-subtext { font-size: 12px; opacity: 0.75; margin-bottom: 14px; }
+        .forecast-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; border-top: 1px solid rgba(255,255,255,0.12); padding-top: 12px; }
+        .forecast-item h4 { margin: 0 0 2px 0; font-size: 11px; font-weight: 500; opacity: 0.7; }
+        .forecast-item p { margin: 0; font-size: 16px; font-weight: 700; }
+
         .actions-section { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
         .btn-action { background: #34c759; color: white; border: none; padding: 10px 12px; border-radius: 10px; font-size: 13px; font-weight: bold; cursor: pointer; text-align: center; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; width: 100%; margin-bottom: 0; }
         .btn-backup-save { background: #007aff; }
@@ -38,21 +48,28 @@
         .chart-container { background: #ffffff; padding: 16px; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 16px; }
         .chart-box-title { font-size: 15px; font-weight: 600; margin: 0 0 12px 0; text-align: center; color: #1c1c1e; }
         
-        /* Barras Verticais */
-        .chart-category-block { margin-bottom: 16px; border-bottom: 1px solid #f2f2f7; padding-bottom: 12px; }
-        .chart-category-block:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        .chart-category-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; display: flex; justify-content: space-between; }
-        .bars-wrapper { display: flex; align-items: flex-end; height: 130px; gap: 12px; padding-top: 22px; border-bottom: 2px solid #e5e5ea; }
-        .bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
-        .bar { width: 100%; max-width: 55px; border-radius: 6px 6px 0 0; transition: height 0.3s ease; position: relative; min-height: 2px; }
+        .unified-chart-wrapper { overflow-x: auto; padding-bottom: 8px; -webkit-overflow-scrolling: touch; }
+        .unified-chart-track { display: inline-flex; align-items: flex-end; height: 180px; gap: 16px; padding: 28px 12px 0 12px; min-width: 100%; border-bottom: 2px solid #e5e5ea; box-sizing: border-box; }
+        .unified-category-col { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; width: 68px; flex-shrink: 0; }
+        .unified-pair-wrapper { display: flex; align-items: flex-end; justify-content: center; gap: 5px; width: 100%; height: 100%; }
+        
+        .bar-pill { width: 22px; border-radius: 5px 5px 0 0; position: relative; transition: height 0.3s ease; min-height: 2px; }
         .bar-planned { background-color: #007aff; }
         .bar-actual { background-color: #ff3b30; }
-        .bar-income { background-color: #34c759; }
-        .bar-expense { background-color: #ff3b30; }
-        .bar-label { font-size: 12px; font-weight: 500; color: #8e8e93; margin-top: 6px; text-align: center; }
-        .bar-value { font-size: 11px; font-weight: bold; position: absolute; top: -18px; width: 100%; text-align: center; color: #1c1c1e; white-space: nowrap; }
+        
+        .bar-tag { font-size: 9px; font-weight: 700; position: absolute; top: -16px; width: 100%; text-align: center; color: #3a3a3c; }
+        .col-caption { font-size: 11px; font-weight: 500; color: #636366; margin-top: 8px; text-align: center; line-height: 1.2; word-break: break-word; width: 100%; }
 
-        /* Gráfico de Pizza (Conic Gradient) */
+        .bars-wrapper-simple { display: flex; align-items: flex-end; height: 130px; gap: 20px; padding: 22px 20px 0 20px; border-bottom: 2px solid #e5e5ea; }
+        .bar-group-simple { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
+        .bar-simple { width: 100%; max-width: 55px; border-radius: 6px 6px 0 0; position: relative; transition: height 0.3s ease; min-height: 2px; }
+        .bar-value-simple { font-size: 11px; font-weight: bold; position: absolute; top: -18px; width: 100%; text-align: center; color: #1c1c1e; }
+        .bar-label-simple { font-size: 12px; font-weight: 500; color: #8e8e93; margin-top: 6px; text-align: center; }
+
+        .chart-legend-box { display: flex; justify-content: center; gap: 16px; margin-bottom: 12px; font-size: 12px; font-weight: 600; color: #636366; }
+        .legend-indicator { display: inline-flex; align-items: center; gap: 6px; }
+        .legend-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
         .pie-wrapper { display: flex; flex-direction: column; align-items: center; gap: 16px; }
         .pie-chart { width: 160px; height: 160px; border-radius: 50%; box-shadow: 0 2px 10px rgba(0,0,0,0.08); flex-shrink: 0; }
         .pie-legend { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; list-style: none; padding: 0; margin: 0; }
@@ -61,7 +78,6 @@
         .pie-legend-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
         .pie-legend-perc { font-weight: bold; margin-left: 4px; color: #3a3a3c; flex-shrink: 0; }
 
-        /* Barra Colapsável (Accordion) */
         .collapse-bar { background: #ffffff; color: #007aff; padding: 14px 16px; border-radius: 14px; font-weight: 600; font-size: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 12px; border: 1px solid #e5e5ea; user-select: none; }
         .collapse-bar.plan-theme { color: #5856d6; }
         .collapse-bar span.arrow { transition: transform 0.25s ease; font-size: 14px; }
@@ -69,7 +85,6 @@
         .collapsible-content { display: none; margin-bottom: 16px; }
         .collapsible-content.open { display: block; }
 
-        /* Tabela Estilo Excel para o History */
         .excel-table-container { background: #ffffff; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow-x: auto; margin-bottom: 20px; }
         .excel-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
         .excel-table th { background: #f8f8fa; padding: 10px 8px; font-weight: 600; color: #8e8e93; border-bottom: 1px solid #e5e5ea; white-space: nowrap; }
@@ -108,7 +123,7 @@
     
     <!-- TELA 1: DASHBOARD -->
     <div id="view-dashboard" class="view active">
-        <h2>Dashboard v5.4</h2>
+        <h2>Dashboard v5.7</h2>
         
         <div class="filter-section">
             <select id="filter-month" onchange="renderDashboard()">
@@ -129,16 +144,48 @@
             <select id="filter-year" onchange="renderDashboard()"></select>
         </div>
 
-        <div class="chart-container">
-            <div class="chart-box-title">Period Overview: Income vs Expenses</div>
-            <div id="dash-inc-exp-chart"></div>
+        <!-- 1. Card Preditivo de Fechamento de Mês -->
+        <div class="forecast-card" id="forecast-block">
+            <div class="forecast-header">
+                <span class="forecast-title">Month-End Forecast</span>
+                <span class="forecast-badge" id="forecast-badge">On Track</span>
+            </div>
+            <div class="forecast-main-val" id="forecast-projected-balance">$ 0.00</div>
+            <div class="forecast-subtext" id="forecast-subtext">Estimated Net Balance at month-end</div>
+            
+            <div class="forecast-grid">
+                <div class="forecast-item">
+                    <h4>Target Variance</h4>
+                    <p id="forecast-variance">$ 0.00</p>
+                </div>
+                <div class="forecast-item">
+                    <h4>Remaining to Spend (Var)</h4>
+                    <p id="forecast-safe-spend">$ 0.00</p>
+                </div>
+                <div class="forecast-item">
+                    <h4>Unpaid Fixed Bills</h4>
+                    <p id="forecast-unpaid-fixed">$ 0.00</p>
+                </div>
+                <div class="forecast-item">
+                    <h4>Total Projected Spend</h4>
+                    <p id="forecast-total-spend">$ 0.00</p>
+                </div>
+            </div>
         </div>
 
+        <!-- 2. Gráfico de Barras: Planned vs Actual Expenses -->
+        <div class="chart-container">
+            <div class="chart-box-title">Total Expenses: Planned vs Actual</div>
+            <div id="dash-plan-actual-chart"></div>
+        </div>
+
+        <!-- 3. Pizza das Despesas Reais -->
         <div class="chart-container">
             <div class="chart-box-title">Actual Expenses Breakdown (%)</div>
             <div id="dash-pie-area"></div>
         </div>
 
+        <!-- 4. Seção Retrátil com Cards de Resumo e Comparativo por Categoria -->
         <div class="collapse-bar" id="dash-collapse-btn" onclick="toggleSection('dash-collapse-btn', 'dash-collapsible-area')">
             <span>Summary Cards & Category Comparison</span>
             <span class="arrow">▼</span>
@@ -160,8 +207,16 @@
                 </div>
             </div>
 
-            <h3>Planned (Blue) vs Actual (Red) by Category</h3>
-            <div class="chart-container" id="chart-area"></div>
+            <div class="chart-container">
+                <div class="chart-box-title">Category Comparison (Planned vs Actual)</div>
+                <div class="chart-legend-box">
+                    <span class="legend-indicator"><span class="legend-dot" style="background:#007aff;"></span> Planned</span>
+                    <span class="legend-indicator"><span class="legend-dot" style="background:#ff3b30;"></span> Actual</span>
+                </div>
+                <div class="unified-chart-wrapper">
+                    <div class="unified-chart-track" id="unified-chart-track"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -313,7 +368,6 @@
             <button type="button" class="btn-filter-clear" onclick="clearHistoryFilters()">Show All</button>
         </div>
 
-        <!-- Seção de Ações: Backup Completo JSON & Exportação CSV -->
         <div class="actions-section">
             <button type="button" class="btn-action btn-backup-save" onclick="exportCompleteBackup()">💾 Save Backup (.json)</button>
             <label class="btn-action btn-backup-load">
@@ -363,6 +417,8 @@
         '#af52de', '#ff2d55', '#5ac8fa', '#ffcc00', '#30b0c7',
         '#a2845e', '#8e8e93', '#32ade6', '#ff6b6b', '#4cd964'
     ];
+
+    const FIXED_GROUPS = ['Housing & Utilities', 'Savings & Obligations'];
 
     const CATEGORIES_BY_TYPE = {
         income: [
@@ -425,6 +481,15 @@
             }
         ]
     };
+
+    function isFixedCategory(categoryName) {
+        for (const g of CATEGORIES_BY_TYPE.expense) {
+            if (g.options.includes(categoryName)) {
+                return FIXED_GROUPS.includes(g.group);
+            }
+        }
+        return false;
+    }
 
     function updateCategoryOptions(typeSelectId, categorySelectId, selectedCategory = '') {
         const typeVal = document.getElementById(typeSelectId).value;
@@ -596,7 +661,7 @@
         return Object.values(map);
     }
 
-    // 1. DASHBOARD
+    // 1. DASHBOARD & FORECAST ENGINE
     function renderDashboard() {
         const selectedMonth = document.getElementById('filter-month').value;
         const selectedYear = document.getElementById('filter-year').value;
@@ -630,47 +695,119 @@
             if (p.type === 'income') planInc += v; else planExp += v;
         });
 
-        const maxIncExp = Math.max(actInc, actExp, 10);
-        const incHeight = Math.round((actInc / maxIncExp) * 100);
-        const expHeight = Math.round((actExp / maxIncExp) * 100);
-        document.getElementById('dash-inc-exp-chart').innerHTML = `
-            <div class="bars-wrapper" style="height: 120px;">
-                <div class="bar-group">
-                    <div class="bar bar-income" style="height: ${incHeight}%;">
-                        <span class="bar-value">$${actInc.toFixed(0)}</span>
+        // 1. CÁLCULO PREDITIVO (MONTH-END FORECAST)
+        const allExpenseCategories = new Set([
+            ...effectivePlan.filter(p => p.type !== 'income').map(p => p.category),
+            ...Object.keys(actualExpensesByCat)
+        ]);
+
+        let totalProjectedExpense = 0;
+        let unpaidFixedBills = 0;
+        let remainingSafeSpend = 0;
+
+        allExpenseCategories.forEach(cat => {
+            const plannedItem = effectivePlan.find(p => p.category === cat && p.type !== 'income');
+            const plannedVal = plannedItem ? (parseFloat(plannedItem.amount) || 0) : 0;
+            const actualVal = actualExpensesByCat[cat] || 0;
+            const isFixed = isFixedCategory(cat);
+
+            if (isFixed) {
+                if (actualVal > 0) {
+                    totalProjectedExpense += actualVal;
+                } else {
+                    totalProjectedExpense += plannedVal;
+                    unpaidFixedBills += plannedVal;
+                }
+            } else {
+                // Gastos Variáveis
+                if (actualVal > plannedVal) {
+                    totalProjectedExpense += actualVal;
+                } else {
+                    totalProjectedExpense += plannedVal;
+                    remainingSafeSpend += (plannedVal - actualVal);
+                }
+            }
+        });
+
+        const effectiveIncome = actInc > 0 ? actInc : planInc;
+        const projectedNetBalance = effectiveIncome - totalProjectedExpense;
+        const plannedTargetNet = planInc - planExp;
+        const targetVariance = projectedNetBalance - plannedTargetNet;
+
+        // Renderizar Card Preditivo
+        const projEl = document.getElementById('forecast-projected-balance');
+        projEl.innerText = (projectedNetBalance >= 0 ? '+' : '-') + '$ ' + Math.abs(projectedNetBalance).toFixed(2);
+        projEl.style.color = projectedNetBalance >= 0 ? '#34c759' : '#ff3b30';
+
+        const badgeEl = document.getElementById('forecast-badge');
+        if (targetVariance >= 0) {
+            badgeEl.innerText = 'On Track';
+            badgeEl.style.background = 'rgba(52, 199, 89, 0.25)';
+            badgeEl.style.color = '#34c759';
+        } else {
+            badgeEl.innerText = 'Over Budget Risk';
+            badgeEl.style.background = 'rgba(255, 59, 48, 0.25)';
+            badgeEl.style.color = '#ff3b30';
+        }
+
+        const varEl = document.getElementById('forecast-variance');
+        varEl.innerText = (targetVariance >= 0 ? '+' : '-') + '$ ' + Math.abs(targetVariance).toFixed(2);
+        varEl.className = targetVariance >= 0 ? 'text-green' : 'text-red';
+
+        document.getElementById('forecast-safe-spend').innerText = '$ ' + remainingSafeSpend.toFixed(2);
+        document.getElementById('forecast-unpaid-fixed').innerText = '$ ' + unpaidFixedBills.toFixed(2);
+        document.getElementById('forecast-total-spend').innerText = '$ ' + totalProjectedExpense.toFixed(2);
+
+        // 2. Gráfico de Barras: Planned Expenses vs Actual Expenses
+        const maxPlanAct = Math.max(planExp, actExp, 10);
+        const planHeight = Math.max(Math.round((planExp / maxPlanAct) * 100), planExp > 0 ? 3 : 0);
+        const actHeight = Math.max(Math.round((actExp / maxPlanAct) * 100), actExp > 0 ? 3 : 0);
+
+        document.getElementById('dash-plan-actual-chart').innerHTML = `
+            <div class="bars-wrapper-simple">
+                <div class="bar-group-simple">
+                    <div class="bar-simple bar-planned" style="height: ${planHeight}%;">
+                        <span class="bar-value-simple">$${planExp.toFixed(0)}</span>
                     </div>
-                    <span class="bar-label">Income</span>
+                    <span class="bar-label-simple">Planned</span>
                 </div>
-                <div class="bar-group">
-                    <div class="bar bar-expense" style="height: ${expHeight}%;">
-                        <span class="bar-value">$${actExp.toFixed(0)}</span>
+                <div class="bar-group-simple">
+                    <div class="bar-simple bar-actual" style="height: ${actHeight}%;">
+                        <span class="bar-value-simple">$${actExp.toFixed(0)}</span>
                     </div>
-                    <span class="bar-label">Expenses</span>
+                    <span class="bar-label-simple">Actual</span>
                 </div>
             </div>
         `;
 
+        // 3. Gráfico Pizza (Despesas Reais)
         renderPieChart('dash-pie-area', actualExpensesByCat);
 
+        // 4. Cards de Balanço Tradicional
         document.getElementById('dash-actual-inc').innerText = '$ ' + actInc.toFixed(2);
         document.getElementById('dash-actual-exp').innerText = '$ ' + actExp.toFixed(2);
         const netActual = actInc - actExp;
         const netPlan = planInc - planExp;
         document.getElementById('dash-net-balance').innerText = '$ ' + netActual.toFixed(2) + ' (Exp: $' + netPlan.toFixed(2) + ')';
 
+        // 5. Mapeamento e Gráfico Unificado por Categoria
         const categoryMap = {};
         effectivePlan.forEach(p => {
-            if (!categoryMap[p.category]) categoryMap[p.category] = { planned: 0, actual: 0 };
-            categoryMap[p.category].planned += (parseFloat(p.amount) || 0);
+            if (p.type !== 'income') {
+                if (!categoryMap[p.category]) categoryMap[p.category] = { planned: 0, actual: 0 };
+                categoryMap[p.category].planned += (parseFloat(p.amount) || 0);
+            }
         });
 
         filteredTx.forEach(t => {
-            if (!categoryMap[t.category]) categoryMap[t.category] = { planned: 0, actual: 0 };
-            categoryMap[t.category].actual += (parseFloat(t.amount) || 0);
+            if (t.type !== 'income') {
+                if (!categoryMap[t.category]) categoryMap[t.category] = { planned: 0, actual: 0 };
+                categoryMap[t.category].actual += (parseFloat(t.amount) || 0);
+            }
         });
 
-        const chartArea = document.getElementById('chart-area');
-        chartArea.innerHTML = '';
+        const trackArea = document.getElementById('unified-chart-track');
+        trackArea.innerHTML = '';
 
         let categories = Object.keys(categoryMap).filter(cat => {
             return categoryMap[cat].planned > 0 || categoryMap[cat].actual > 0;
@@ -679,39 +816,36 @@
         categories.sort((a, b) => categoryMap[b].planned - categoryMap[a].planned);
 
         if (categories.length === 0) {
-            chartArea.innerHTML = '<p style="text-align:center;color:#8e8e93;margin:20px 0;">No active categories for this period.</p>';
+            trackArea.innerHTML = '<p style="text-align:center;color:#8e8e93;margin:auto;font-size:13px;">No active expense categories for this period.</p>';
             return;
         }
 
+        let overallMax = 10;
+        categories.forEach(cat => {
+            const d = categoryMap[cat];
+            if (d.planned > overallMax) overallMax = d.planned;
+            if (d.actual > overallMax) overallMax = d.actual;
+        });
+
         categories.forEach(cat => {
             const data = categoryMap[cat];
-            const maxVal = Math.max(data.planned, data.actual, 10);
-            const planHeight = Math.round((data.planned / maxVal) * 100);
-            const actHeight = Math.round((data.actual / maxVal) * 100);
+            const catPlanH = Math.max(Math.round((data.planned / overallMax) * 100), data.planned > 0 ? 3 : 0);
+            const catActH = Math.max(Math.round((data.actual / overallMax) * 100), data.actual > 0 ? 3 : 0);
 
-            const block = document.createElement('div');
-            block.className = 'chart-category-block';
-            block.innerHTML = `
-                <div class="chart-category-title">
-                    <span>${cat}</span>
-                    <span style="font-size:12px;color:#8e8e93;">Plan: $${data.planned.toFixed(0)} | Act: $${data.actual.toFixed(0)}</span>
-                </div>
-                <div class="bars-wrapper">
-                    <div class="bar-group">
-                        <div class="bar bar-planned" style="height: ${planHeight}%;">
-                            <span class="bar-value">$${data.planned.toFixed(0)}</span>
-                        </div>
-                        <span class="bar-label">Planned</span>
+            const col = document.createElement('div');
+            col.className = 'unified-category-col';
+            col.innerHTML = `
+                <div class="unified-pair-wrapper">
+                    <div class="bar-pill bar-planned" style="height: ${catPlanH}%;">
+                        <span class="bar-tag">${data.planned > 0 ? '$' + Math.round(data.planned) : ''}</span>
                     </div>
-                    <div class="bar-group">
-                        <div class="bar bar-actual" style="height: ${actHeight}%;">
-                            <span class="bar-value">$${data.actual.toFixed(0)}</span>
-                        </div>
-                        <span class="bar-label">Actual</span>
+                    <div class="bar-pill bar-actual" style="height: ${catActH}%;">
+                        <span class="bar-tag">${data.actual > 0 ? '$' + Math.round(data.actual) : ''}</span>
                     </div>
                 </div>
+                <span class="col-caption" title="${cat}">${cat}</span>
             `;
-            chartArea.appendChild(block);
+            trackArea.appendChild(col);
         });
     }
 
@@ -977,7 +1111,6 @@
         renderHistory();
     }
 
-    // Exportação em formato de Planilha (CSV)
     function exportToCSV() {
         if (transactions.length === 0) {
             alert('No transactions to export.');
@@ -1001,10 +1134,9 @@
         URL.revokeObjectURL(url);
     }
 
-    // Exportar Backup Completo JSON
     function exportCompleteBackup() {
         const backupData = {
-            version: '5.4',
+            version: '5.7',
             exportDate: new Date().toISOString(),
             transactions: transactions,
             planning: planItems
@@ -1022,7 +1154,6 @@
         URL.revokeObjectURL(url);
     }
 
-    // Importar / Restaurar Backup Completo JSON
     function importCompleteBackup(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -1048,7 +1179,6 @@
             } catch (err) {
                 alert('Invalid backup file. Please select a valid JSON backup.');
             }
-            // Limpa o seletor de arquivo para permitir recarregar o mesmo se necessário
             event.target.value = '';
         };
         reader.readAsText(file);
