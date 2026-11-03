@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Budget Manager v5.7</title>
+    <title>Budget Manager v5.9</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f2f2f7; margin: 0; padding: 16px; color: #1c1c1e; padding-bottom: 90px; }
         .container { max-width: 600px; margin: 0 auto; }
@@ -13,6 +13,13 @@
         .view { display: none; }
         .view.active { display: block; }
         
+        /* Banner de Lembrete de Backup */
+        .backup-reminder-banner { background: #fff9e6; border: 1px solid #ffe58f; border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; display: none; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
+        .reminder-content { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #874d00; flex: 1; }
+        .reminder-actions { display: flex; align-items: center; gap: 6px; }
+        .btn-reminder-backup { background: #faad14; color: #ffffff; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; margin-bottom: 0; width: auto; }
+        .btn-reminder-dismiss { background: none; border: none; font-size: 16px; color: #874d00; cursor: pointer; padding: 0 4px; margin-bottom: 0; width: auto; opacity: 0.6; }
+
         .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .card { background: #ffffff; padding: 16px; border-radius: 14px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         .card.balance { grid-column: span 2; background: #007aff; color: white; }
@@ -27,7 +34,6 @@
         .filter-section select { margin-bottom: 0; flex: 1; }
         .btn-filter-clear { background: #8e8e93; color: white; border: none; padding: 12px 14px; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; white-space: nowrap; width: auto; margin-bottom: 0; }
 
-        /* Card Preditivo de Fechamento */
         .forecast-card { background: linear-gradient(135deg, #1c1c1e, #2c2c2e); color: #ffffff; padding: 18px; border-radius: 16px; margin-bottom: 16px; box-shadow: 0 4px 14px rgba(0,0,0,0.12); }
         .forecast-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .forecast-title { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8; }
@@ -38,13 +44,20 @@
         .forecast-item h4 { margin: 0 0 2px 0; font-size: 11px; font-weight: 500; opacity: 0.7; }
         .forecast-item p { margin: 0; font-size: 16px; font-weight: 700; }
 
+        .split-card { background: #f8f8fa; border: 1px solid #e5e5ea; border-radius: 12px; padding: 12px; margin-bottom: 14px; }
+        .split-header { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+        .split-bar-container { width: 100%; height: 10px; background-color: #e5e5ea; border-radius: 6px; overflow: hidden; display: flex; margin-bottom: 8px; }
+        .split-bar-fixed { background-color: #5856d6; height: 100%; transition: width 0.3s ease; }
+        .split-bar-variable { background-color: #ff9500; height: 100%; transition: width 0.3s ease; }
+        .split-labels { display: flex; justify-content: space-between; font-size: 11px; color: #636366; }
+        .split-label-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+
         .actions-section { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
         .btn-action { background: #34c759; color: white; border: none; padding: 10px 12px; border-radius: 10px; font-size: 13px; font-weight: bold; cursor: pointer; text-align: center; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; width: 100%; margin-bottom: 0; }
         .btn-backup-save { background: #007aff; }
         .btn-backup-load { background: #5856d6; }
         .btn-csv { background: #34c759; grid-column: span 2; }
 
-        /* Containers de Gráficos */
         .chart-container { background: #ffffff; padding: 16px; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 16px; }
         .chart-box-title { font-size: 15px; font-weight: 600; margin: 0 0 12px 0; text-align: center; color: #1c1c1e; }
         
@@ -123,7 +136,19 @@
     
     <!-- TELA 1: DASHBOARD -->
     <div id="view-dashboard" class="view active">
-        <h2>Dashboard v5.7</h2>
+        <h2>Dashboard v5.9</h2>
+
+        <!-- Banner de Lembrete Inteligente de Backup -->
+        <div class="backup-reminder-banner" id="backup-reminder-banner">
+            <div class="reminder-content">
+                <span>⚠️</span>
+                <span>It's been a while since your last backup. Keep your data safe!</span>
+            </div>
+            <div class="reminder-actions">
+                <button type="button" class="btn-reminder-backup" onclick="exportCompleteBackup()">Backup Now</button>
+                <button type="button" class="btn-reminder-dismiss" onclick="dismissBackupReminder()" title="Dismiss">✕</button>
+            </div>
+        </div>
         
         <div class="filter-section">
             <select id="filter-month" onchange="renderDashboard()">
@@ -144,7 +169,6 @@
             <select id="filter-year" onchange="renderDashboard()"></select>
         </div>
 
-        <!-- 1. Card Preditivo de Fechamento de Mês -->
         <div class="forecast-card" id="forecast-block">
             <div class="forecast-header">
                 <span class="forecast-title">Month-End Forecast</span>
@@ -173,19 +197,17 @@
             </div>
         </div>
 
-        <!-- 2. Gráfico de Barras: Planned vs Actual Expenses -->
         <div class="chart-container">
             <div class="chart-box-title">Total Expenses: Planned vs Actual</div>
             <div id="dash-plan-actual-chart"></div>
         </div>
 
-        <!-- 3. Pizza das Despesas Reais -->
         <div class="chart-container">
             <div class="chart-box-title">Actual Expenses Breakdown (%)</div>
+            <div id="dash-split-container"></div>
             <div id="dash-pie-area"></div>
         </div>
 
-        <!-- 4. Seção Retrátil com Cards de Resumo e Comparativo por Categoria -->
         <div class="collapse-bar" id="dash-collapse-btn" onclick="toggleSection('dash-collapse-btn', 'dash-collapsible-area')">
             <span>Summary Cards & Category Comparison</span>
             <span class="arrow">▼</span>
@@ -309,6 +331,7 @@
 
         <div class="chart-container">
             <div class="chart-box-title">Planned Expenses Breakdown (%)</div>
+            <div id="plan-split-container"></div>
             <div id="plan-pie-area"></div>
         </div>
 
@@ -535,6 +558,82 @@
         }
     }
 
+    // Gerenciador do Lembrete Inteligente de Backup
+    function checkBackupReminder() {
+        const banner = document.getElementById('backup-reminder-banner');
+        if (!banner) return;
+
+        // Se o usuário não tem dados, não há necessidade de alerta
+        if (transactions.length === 0 && planItems.length === 0) {
+            banner.style.display = 'none';
+            return;
+        }
+
+        const lastBackupStr = localStorage.getItem('app_last_backup_date');
+        const now = new Date().getTime();
+
+        if (!lastBackupStr) {
+            banner.style.display = 'flex';
+            return;
+        }
+
+        const lastBackupTime = parseInt(lastBackupStr, 10);
+        const daysSinceBackup = (now - lastBackupTime) / (1000 * 60 * 60 * 24);
+
+        if (daysSinceBackup >= 7) {
+            banner.style.display = 'flex';
+        } else {
+            banner.style.display = 'none';
+        }
+    }
+
+    function dismissBackupReminder() {
+        const banner = document.getElementById('backup-reminder-banner');
+        if (banner) banner.style.display = 'none';
+    }
+
+    function renderSplitIndicator(containerId, categoryAmountsMap) {
+        const container = document.getElementById(containerId);
+        let fixedTotal = 0;
+        let variableTotal = 0;
+
+        Object.entries(categoryAmountsMap).forEach(([cat, val]) => {
+            if (val > 0) {
+                if (isFixedCategory(cat)) {
+                    fixedTotal += val;
+                } else {
+                    variableTotal += val;
+                }
+            }
+        });
+
+        const total = fixedTotal + variableTotal;
+        if (total <= 0) {
+            container.innerHTML = '';
+            return;
+        }
+
+        const fixedPerc = ((fixedTotal / total) * 100);
+        const variablePerc = ((variableTotal / total) * 100);
+
+        container.innerHTML = `
+            <div class="split-card">
+                <div class="split-header">
+                    <span>Fixed: $${fixedTotal.toFixed(0)} (${fixedPerc.toFixed(1)}%)</span>
+                    <span>Variable: $${variableTotal.toFixed(0)} (${variablePerc.toFixed(1)}%)</span>
+                </div>
+                <div class="split-bar-container">
+                    <div class="split-bar-fixed" style="width: ${fixedPerc.toFixed(2)}%;"></div>
+                    <div class="split-bar-variable" style="width: ${variablePerc.toFixed(2)}%;"></div>
+                </div>
+                <div class="split-labels">
+                    <span><span class="split-label-dot" style="background:#5856d6;"></span>Fixed Obligations</span>
+                    <span><span class="split-label-dot" style="background:#ff9500;"></span>Variable Lifestyle</span>
+                </div>
+            </div>
+        `;
+    }
+
     function renderPieChart(containerId, categoryAmountsMap) {
         const container = document.getElementById(containerId);
         const entries = Object.entries(categoryAmountsMap)
@@ -663,6 +762,8 @@
 
     // 1. DASHBOARD & FORECAST ENGINE
     function renderDashboard() {
+        checkBackupReminder();
+
         const selectedMonth = document.getElementById('filter-month').value;
         const selectedYear = document.getElementById('filter-year').value;
 
@@ -695,7 +796,6 @@
             if (p.type === 'income') planInc += v; else planExp += v;
         });
 
-        // 1. CÁLCULO PREDITIVO (MONTH-END FORECAST)
         const allExpenseCategories = new Set([
             ...effectivePlan.filter(p => p.type !== 'income').map(p => p.category),
             ...Object.keys(actualExpensesByCat)
@@ -719,7 +819,6 @@
                     unpaidFixedBills += plannedVal;
                 }
             } else {
-                // Gastos Variáveis
                 if (actualVal > plannedVal) {
                     totalProjectedExpense += actualVal;
                 } else {
@@ -734,7 +833,6 @@
         const plannedTargetNet = planInc - planExp;
         const targetVariance = projectedNetBalance - plannedTargetNet;
 
-        // Renderizar Card Preditivo
         const projEl = document.getElementById('forecast-projected-balance');
         projEl.innerText = (projectedNetBalance >= 0 ? '+' : '-') + '$ ' + Math.abs(projectedNetBalance).toFixed(2);
         projEl.style.color = projectedNetBalance >= 0 ? '#34c759' : '#ff3b30';
@@ -758,7 +856,6 @@
         document.getElementById('forecast-unpaid-fixed').innerText = '$ ' + unpaidFixedBills.toFixed(2);
         document.getElementById('forecast-total-spend').innerText = '$ ' + totalProjectedExpense.toFixed(2);
 
-        // 2. Gráfico de Barras: Planned Expenses vs Actual Expenses
         const maxPlanAct = Math.max(planExp, actExp, 10);
         const planHeight = Math.max(Math.round((planExp / maxPlanAct) * 100), planExp > 0 ? 3 : 0);
         const actHeight = Math.max(Math.round((actExp / maxPlanAct) * 100), actExp > 0 ? 3 : 0);
@@ -780,17 +877,15 @@
             </div>
         `;
 
-        // 3. Gráfico Pizza (Despesas Reais)
+        renderSplitIndicator('dash-split-container', actualExpensesByCat);
         renderPieChart('dash-pie-area', actualExpensesByCat);
 
-        // 4. Cards de Balanço Tradicional
         document.getElementById('dash-actual-inc').innerText = '$ ' + actInc.toFixed(2);
         document.getElementById('dash-actual-exp').innerText = '$ ' + actExp.toFixed(2);
         const netActual = actInc - actExp;
         const netPlan = planInc - planExp;
         document.getElementById('dash-net-balance').innerText = '$ ' + netActual.toFixed(2) + ' (Exp: $' + netPlan.toFixed(2) + ')';
 
-        // 5. Mapeamento e Gráfico Unificado por Categoria
         const categoryMap = {};
         effectivePlan.forEach(p => {
             if (p.type !== 'income') {
@@ -983,6 +1078,7 @@
         document.getElementById('plan-total-expense').innerText = '$ ' + exp.toFixed(2);
         document.getElementById('plan-total-balance').innerText = '$ ' + (inc - exp).toFixed(2);
         
+        renderSplitIndicator('plan-split-container', plannedExpensesByCat);
         renderPieChart('plan-pie-area', plannedExpensesByCat);
 
         localStorage.setItem('app_plan_v2', JSON.stringify(planItems));
@@ -1134,9 +1230,10 @@
         URL.revokeObjectURL(url);
     }
 
+    // Exportar Backup Completo JSON e Atualizar Carimbo de Tempo
     function exportCompleteBackup() {
         const backupData = {
-            version: '5.7',
+            version: '5.9',
             exportDate: new Date().toISOString(),
             transactions: transactions,
             planning: planItems
@@ -1152,6 +1249,10 @@
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
+
+        // Atualiza a data do último backup e fecha o lembrete
+        localStorage.setItem('app_last_backup_date', new Date().getTime().toString());
+        dismissBackupReminder();
     }
 
     function importCompleteBackup(event) {
@@ -1170,6 +1271,10 @@
                     planItems = parsed.planning;
                     localStorage.setItem('app_plan_v2', JSON.stringify(planItems));
                 }
+
+                // Carimba o backup restaurado como o mais recente
+                localStorage.setItem('app_last_backup_date', new Date().getTime().toString());
+                dismissBackupReminder();
 
                 renderTransactions();
                 renderPlanning();
