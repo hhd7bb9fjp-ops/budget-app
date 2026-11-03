@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Budget Manager v5.9</title>
+    <title>Easy Budget</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f2f2f7; margin: 0; padding: 16px; color: #1c1c1e; padding-bottom: 90px; }
         .container { max-width: 600px; margin: 0 auto; }
@@ -12,8 +12,11 @@
         
         .view { display: none; }
         .view.active { display: block; }
+
+        .app-header { text-align: center; padding: 8px 0 14px 0; }
+        .app-header h1 { margin: 0; font-size: 24px; font-weight: 800; color: #1c1c1e; letter-spacing: -0.5px; }
+        .app-header p { margin: 2px 0 0 0; font-size: 12px; color: #8e8e93; font-weight: 500; }
         
-        /* Banner de Lembrete de Backup */
         .backup-reminder-banner { background: #fff9e6; border: 1px solid #ffe58f; border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; display: none; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
         .reminder-content { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #874d00; flex: 1; }
         .reminder-actions { display: flex; align-items: center; gap: 6px; }
@@ -61,27 +64,30 @@
         .chart-container { background: #ffffff; padding: 16px; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 16px; }
         .chart-box-title { font-size: 15px; font-weight: 600; margin: 0 0 12px 0; text-align: center; color: #1c1c1e; }
         
-        .unified-chart-wrapper { overflow-x: auto; padding-bottom: 8px; -webkit-overflow-scrolling: touch; }
-        .unified-chart-track { display: inline-flex; align-items: flex-end; height: 180px; gap: 16px; padding: 28px 12px 0 12px; min-width: 100%; border-bottom: 2px solid #e5e5ea; box-sizing: border-box; }
-        .unified-category-col { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; width: 68px; flex-shrink: 0; }
-        .unified-pair-wrapper { display: flex; align-items: flex-end; justify-content: center; gap: 5px; width: 100%; height: 100%; }
+        /* NOVO DESIGN: Category Gauge List (Progresso Horizontal Individual) */
+        .gauge-list { display: flex; flex-direction: column; gap: 14px; }
+        .gauge-item { background: #ffffff; border-bottom: 1px solid #f2f2f7; padding-bottom: 12px; }
+        .gauge-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .gauge-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+        .gauge-cat-title { font-size: 14px; font-weight: 600; color: #1c1c1e; }
+        .gauge-status { font-size: 12px; font-weight: 700; }
+        .gauge-status.ok { color: #34c759; }
+        .gauge-status.warning { color: #ff9500; }
+        .gauge-status.danger { color: #ff3b30; }
         
-        .bar-pill { width: 22px; border-radius: 5px 5px 0 0; position: relative; transition: height 0.3s ease; min-height: 2px; }
-        .bar-planned { background-color: #007aff; }
-        .bar-actual { background-color: #ff3b30; }
-        
-        .bar-tag { font-size: 9px; font-weight: 700; position: absolute; top: -16px; width: 100%; text-align: center; color: #3a3a3c; }
-        .col-caption { font-size: 11px; font-weight: 500; color: #636366; margin-top: 8px; text-align: center; line-height: 1.2; word-break: break-word; width: 100%; }
+        .gauge-track { width: 100%; height: 10px; background-color: #e5e5ea; border-radius: 5px; overflow: hidden; margin-bottom: 4px; position: relative; }
+        .gauge-fill { height: 100%; border-radius: 5px; transition: width 0.3s ease; }
+        .gauge-fill.ok { background-color: #007aff; }
+        .gauge-fill.warning { background-color: #ff9500; }
+        .gauge-fill.danger { background-color: #ff3b30; }
+
+        .gauge-footer { display: flex; justify-content: space-between; font-size: 11px; color: #8e8e93; }
 
         .bars-wrapper-simple { display: flex; align-items: flex-end; height: 130px; gap: 20px; padding: 22px 20px 0 20px; border-bottom: 2px solid #e5e5ea; }
         .bar-group-simple { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
         .bar-simple { width: 100%; max-width: 55px; border-radius: 6px 6px 0 0; position: relative; transition: height 0.3s ease; min-height: 2px; }
         .bar-value-simple { font-size: 11px; font-weight: bold; position: absolute; top: -18px; width: 100%; text-align: center; color: #1c1c1e; }
         .bar-label-simple { font-size: 12px; font-weight: 500; color: #8e8e93; margin-top: 6px; text-align: center; }
-
-        .chart-legend-box { display: flex; justify-content: center; gap: 16px; margin-bottom: 12px; font-size: 12px; font-weight: 600; color: #636366; }
-        .legend-indicator { display: inline-flex; align-items: center; gap: 6px; }
-        .legend-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
 
         .pie-wrapper { display: flex; flex-direction: column; align-items: center; gap: 16px; }
         .pie-chart { width: 160px; height: 160px; border-radius: 50%; box-shadow: 0 2px 10px rgba(0,0,0,0.08); flex-shrink: 0; }
@@ -106,6 +112,13 @@
         .table-btns { display: flex; gap: 4px; }
         .btn-table-edit { background: #ff9500; color: white; border: none; padding: 4px 8px; font-size: 11px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .btn-table-del { background: #ff3b30; color: white; border: none; padding: 4px 8px; font-size: 11px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+
+        .settings-card { background: #ffffff; border-radius: 14px; padding: 18px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .settings-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f2f2f7; font-size: 14px; }
+        .settings-item:last-child { border-bottom: none; }
+        .settings-label { color: #8e8e93; font-weight: 500; }
+        .settings-val { color: #1c1c1e; font-weight: 600; }
+        .settings-badge { background: #e5e5ea; color: #1c1c1e; padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; }
 
         .form-section { background: #ffffff; padding: 16px; border-radius: 14px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden; }
         input, select, button { width: 100%; max-width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #e5e5ea; border-radius: 10px; font-size: 16px; box-sizing: border-box; background-color: #ffffff; display: block; }
@@ -136,9 +149,11 @@
     
     <!-- TELA 1: DASHBOARD -->
     <div id="view-dashboard" class="view active">
-        <h2>Dashboard v5.9</h2>
+        <div class="app-header">
+            <h1>Easy Budget</h1>
+            <p>Simple • Local • Private</p>
+        </div>
 
-        <!-- Banner de Lembrete Inteligente de Backup -->
         <div class="backup-reminder-banner" id="backup-reminder-banner">
             <div class="reminder-content">
                 <span>⚠️</span>
@@ -209,7 +224,7 @@
         </div>
 
         <div class="collapse-bar" id="dash-collapse-btn" onclick="toggleSection('dash-collapse-btn', 'dash-collapsible-area')">
-            <span>Summary Cards & Category Comparison</span>
+            <span>Summary Cards & Category Budgets</span>
             <span class="arrow">▼</span>
         </div>
 
@@ -229,15 +244,10 @@
                 </div>
             </div>
 
+            <!-- NOVO PAINEL VERTICAL DE CATEGORIAS -->
             <div class="chart-container">
-                <div class="chart-box-title">Category Comparison (Planned vs Actual)</div>
-                <div class="chart-legend-box">
-                    <span class="legend-indicator"><span class="legend-dot" style="background:#007aff;"></span> Planned</span>
-                    <span class="legend-indicator"><span class="legend-dot" style="background:#ff3b30;"></span> Actual</span>
-                </div>
-                <div class="unified-chart-wrapper">
-                    <div class="unified-chart-track" id="unified-chart-track"></div>
-                </div>
+                <div class="chart-box-title">Category Budget Progress</div>
+                <div class="gauge-list" id="category-gauge-list"></div>
             </div>
         </div>
     </div>
@@ -391,15 +401,6 @@
             <button type="button" class="btn-filter-clear" onclick="clearHistoryFilters()">Show All</button>
         </div>
 
-        <div class="actions-section">
-            <button type="button" class="btn-action btn-backup-save" onclick="exportCompleteBackup()">💾 Save Backup (.json)</button>
-            <label class="btn-action btn-backup-load">
-                📥 Restore Backup
-                <input type="file" id="backup-file-input" accept=".json" onchange="importCompleteBackup(event)" style="display:none;">
-            </label>
-            <button type="button" class="btn-action btn-csv" onclick="exportToCSV()">📄 Export to CSV (Spreadsheet)</button>
-        </div>
-
         <div class="excel-table-container">
             <table class="excel-table">
                 <thead>
@@ -413,6 +414,48 @@
                 </thead>
                 <tbody id="history-table-body"></tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- TELA 5: SETTINGS -->
+    <div id="view-settings" class="view">
+        <h2>Settings</h2>
+
+        <div class="settings-card">
+            <div class="settings-item">
+                <span class="settings-label">Application</span>
+                <span class="settings-val">Easy Budget</span>
+            </div>
+            <div class="settings-item">
+                <span class="settings-label">Release Version</span>
+                <span class="settings-badge" id="app-version-badge">v6.2</span>
+            </div>
+            <div class="settings-item">
+                <span class="settings-label">Architecture</span>
+                <span class="settings-val">Local-First (No Cloud)</span>
+            </div>
+            <div class="settings-item">
+                <span class="settings-label">Last Backup Date</span>
+                <span class="settings-val" id="settings-last-backup">Never</span>
+            </div>
+            <div class="settings-item">
+                <span class="settings-label">Stored Transactions</span>
+                <span class="settings-val" id="settings-tx-count">0</span>
+            </div>
+            <div class="settings-item">
+                <span class="settings-label">Stored Budget Items</span>
+                <span class="settings-val" id="settings-plan-count">0</span>
+            </div>
+        </div>
+
+        <h3>Data Backup & Export</h3>
+        <div class="actions-section">
+            <button type="button" class="btn-action btn-backup-save" onclick="exportCompleteBackup()">💾 Save Backup (.json)</button>
+            <label class="btn-action btn-backup-load">
+                📥 Restore Backup
+                <input type="file" id="backup-file-input" accept=".json" onchange="importCompleteBackup(event)" style="display:none;">
+            </label>
+            <button type="button" class="btn-action btn-csv" onclick="exportToCSV()">📄 Export to CSV (Spreadsheet)</button>
         </div>
     </div>
 
@@ -432,16 +475,29 @@
     <button type="button" class="nav-item" id="btn-nav-hist">
         <span>📑</span> History
     </button>
+    <button type="button" class="nav-item" id="btn-nav-settings">
+        <span>⚙️</span> Settings
+    </button>
 </nav>
 
 <script>
+    const APP_VERSION = 'v6.2';
+
     const PIE_COLORS = [
         '#007aff', '#ff3b30', '#34c759', '#ff9500', '#5856d6',
         '#af52de', '#ff2d55', '#5ac8fa', '#ffcc00', '#30b0c7',
         '#a2845e', '#8e8e93', '#32ade6', '#ff6b6b', '#4cd964'
     ];
 
-    const FIXED_GROUPS = ['Housing & Utilities', 'Savings & Obligations'];
+    const STRICT_FIXED_CATEGORIES = [
+        'Rent / Mortgage',
+        'Utilities',
+        'Internet & Phone',
+        'Insurance',
+        'Debt & Loans',
+        'Taxes',
+        'Allowance'
+    ];
 
     const CATEGORIES_BY_TYPE = {
         income: [
@@ -506,12 +562,7 @@
     };
 
     function isFixedCategory(categoryName) {
-        for (const g of CATEGORIES_BY_TYPE.expense) {
-            if (g.options.includes(categoryName)) {
-                return FIXED_GROUPS.includes(g.group);
-            }
-        }
-        return false;
+        return STRICT_FIXED_CATEGORIES.includes(categoryName);
     }
 
     function updateCategoryOptions(typeSelectId, categorySelectId, selectedCategory = '') {
@@ -558,12 +609,10 @@
         }
     }
 
-    // Gerenciador do Lembrete Inteligente de Backup
     function checkBackupReminder() {
         const banner = document.getElementById('backup-reminder-banner');
         if (!banner) return;
 
-        // Se o usuário não tem dados, não há necessidade de alerta
         if (transactions.length === 0 && planItems.length === 0) {
             banner.style.display = 'none';
             return;
@@ -628,7 +677,7 @@
                 </div>
                 <div class="split-labels">
                     <span><span class="split-label-dot" style="background:#5856d6;"></span>Fixed Obligations</span>
-                    <span><span class="split-label-dot" style="background:#ff9500;"></span>Variable Lifestyle</span>
+                    <span><span class="split-label-dot" style="background:#ff9500;"></span>Variable & Investments</span>
                 </div>
             </div>
         `;
@@ -704,27 +753,32 @@
     const viewTrans = document.getElementById('view-transactions');
     const viewPlan = document.getElementById('view-planning');
     const viewHist = document.getElementById('view-history');
+    const viewSettings = document.getElementById('view-settings');
     
     const btnDash = document.getElementById('btn-nav-dash');
     const btnTrans = document.getElementById('btn-nav-trans');
     const btnPlan = document.getElementById('btn-nav-plan');
     const btnHist = document.getElementById('btn-nav-hist');
+    const btnSettings = document.getElementById('btn-nav-settings');
 
     function switchView(target) {
         viewDash.classList.remove('active');
         viewTrans.classList.remove('active');
         viewPlan.classList.remove('active');
         viewHist.classList.remove('active');
+        viewSettings.classList.remove('active');
         
         btnDash.classList.remove('active');
         btnTrans.classList.remove('active');
         btnPlan.classList.remove('active');
         btnHist.classList.remove('active');
+        btnSettings.classList.remove('active');
 
         if(target === 'dash') { viewDash.classList.add('active'); btnDash.classList.add('active'); renderDashboard(); }
         if(target === 'trans') { viewTrans.classList.add('active'); btnTrans.classList.add('active'); renderTransactions(); }
         if(target === 'plan') { viewPlan.classList.add('active'); btnPlan.classList.add('active'); renderPlanning(); }
         if(target === 'hist') { viewHist.classList.add('active'); btnHist.classList.add('active'); renderHistory(); }
+        if(target === 'settings') { viewSettings.classList.add('active'); btnSettings.classList.add('active'); renderSettings(); }
         
         refreshDefaultDates();
         window.scrollTo(0, 0);
@@ -734,6 +788,7 @@
     btnTrans.addEventListener('click', () => switchView('trans'));
     btnPlan.addEventListener('click', () => switchView('plan'));
     btnHist.addEventListener('click', () => switchView('hist'));
+    btnSettings.addEventListener('click', () => switchView('settings'));
 
     window.addEventListener('focus', refreshDefaultDates);
 
@@ -760,7 +815,7 @@
         return Object.values(map);
     }
 
-    // 1. DASHBOARD & FORECAST ENGINE
+    // 1. DASHBOARD & GAUGE PROGRESS LIST
     function renderDashboard() {
         checkBackupReminder();
 
@@ -796,6 +851,7 @@
             if (p.type === 'income') planInc += v; else planExp += v;
         });
 
+        // 1. Cálculo Preditivo
         const allExpenseCategories = new Set([
             ...effectivePlan.filter(p => p.type !== 'income').map(p => p.category),
             ...Object.keys(actualExpensesByCat)
@@ -828,7 +884,7 @@
             }
         });
 
-        const effectiveIncome = actInc > 0 ? actInc : planInc;
+        const effectiveIncome = Math.max(planInc, actInc);
         const projectedNetBalance = effectiveIncome - totalProjectedExpense;
         const plannedTargetNet = planInc - planExp;
         const targetVariance = projectedNetBalance - plannedTargetNet;
@@ -856,6 +912,7 @@
         document.getElementById('forecast-unpaid-fixed').innerText = '$ ' + unpaidFixedBills.toFixed(2);
         document.getElementById('forecast-total-spend').innerText = '$ ' + totalProjectedExpense.toFixed(2);
 
+        // 2. Overview Barras
         const maxPlanAct = Math.max(planExp, actExp, 10);
         const planHeight = Math.max(Math.round((planExp / maxPlanAct) * 100), planExp > 0 ? 3 : 0);
         const actHeight = Math.max(Math.round((actExp / maxPlanAct) * 100), actExp > 0 ? 3 : 0);
@@ -877,15 +934,18 @@
             </div>
         `;
 
+        // 3. Indicador Split + Pizza das Despesas Reais
         renderSplitIndicator('dash-split-container', actualExpensesByCat);
         renderPieChart('dash-pie-area', actualExpensesByCat);
 
+        // 4. Cards de Balanço Tradicional
         document.getElementById('dash-actual-inc').innerText = '$ ' + actInc.toFixed(2);
         document.getElementById('dash-actual-exp').innerText = '$ ' + actExp.toFixed(2);
         const netActual = actInc - actExp;
         const netPlan = planInc - planExp;
         document.getElementById('dash-net-balance').innerText = '$ ' + netActual.toFixed(2) + ' (Exp: $' + netPlan.toFixed(2) + ')';
 
+        // 5. NOVO RENDERIZADOR: GAUGE PROGRESS LIST HORIZONTAL
         const categoryMap = {};
         effectivePlan.forEach(p => {
             if (p.type !== 'income') {
@@ -901,46 +961,66 @@
             }
         });
 
-        const trackArea = document.getElementById('unified-chart-track');
-        trackArea.innerHTML = '';
+        const gaugeListEl = document.getElementById('category-gauge-list');
+        gaugeListEl.innerHTML = '';
 
         let categories = Object.keys(categoryMap).filter(cat => {
             return categoryMap[cat].planned > 0 || categoryMap[cat].actual > 0;
         });
 
+        // Ordena por maior orçamento planejado
         categories.sort((a, b) => categoryMap[b].planned - categoryMap[a].planned);
 
         if (categories.length === 0) {
-            trackArea.innerHTML = '<p style="text-align:center;color:#8e8e93;margin:auto;font-size:13px;">No active expense categories for this period.</p>';
+            gaugeListEl.innerHTML = '<p style="text-align:center;color:#8e8e93;margin:auto;font-size:13px;padding:10px 0;">No active expense categories for this period.</p>';
             return;
         }
 
-        let overallMax = 10;
-        categories.forEach(cat => {
-            const d = categoryMap[cat];
-            if (d.planned > overallMax) overallMax = d.planned;
-            if (d.actual > overallMax) overallMax = d.actual;
-        });
-
         categories.forEach(cat => {
             const data = categoryMap[cat];
-            const catPlanH = Math.max(Math.round((data.planned / overallMax) * 100), data.planned > 0 ? 3 : 0);
-            const catActH = Math.max(Math.round((data.actual / overallMax) * 100), data.actual > 0 ? 3 : 0);
+            const p = data.planned;
+            const a = data.actual;
+            
+            let statusText = '';
+            let statusClass = 'ok';
+            let barWidth = 0;
 
-            const col = document.createElement('div');
-            col.className = 'unified-category-col';
-            col.innerHTML = `
-                <div class="unified-pair-wrapper">
-                    <div class="bar-pill bar-planned" style="height: ${catPlanH}%;">
-                        <span class="bar-tag">${data.planned > 0 ? '$' + Math.round(data.planned) : ''}</span>
-                    </div>
-                    <div class="bar-pill bar-actual" style="height: ${catActH}%;">
-                        <span class="bar-tag">${data.actual > 0 ? '$' + Math.round(data.actual) : ''}</span>
-                    </div>
+            if (p > 0) {
+                const perc = (a / p) * 100;
+                barWidth = Math.min(perc, 100);
+
+                if (a > p) {
+                    statusClass = 'danger';
+                    const overVal = a - p;
+                    statusText = `Over by +$${overVal.toFixed(2)}`;
+                } else {
+                    const rem = p - a;
+                    if (perc >= 80) statusClass = 'warning';
+                    statusText = `Left: $${rem.toFixed(2)}`;
+                }
+            } else {
+                // Não planejado mas gasto
+                barWidth = 100;
+                statusClass = 'danger';
+                statusText = `Unplanned (+$${a.toFixed(2)})`;
+            }
+
+            const itemEl = document.createElement('div');
+            itemEl.className = 'gauge-item';
+            itemEl.innerHTML = `
+                <div class="gauge-header">
+                    <span class="gauge-cat-title">${cat}</span>
+                    <span class="gauge-status ${statusClass}">${statusText}</span>
                 </div>
-                <span class="col-caption" title="${cat}">${cat}</span>
+                <div class="gauge-track">
+                    <div class="gauge-fill ${statusClass}" style="width: ${barWidth.toFixed(1)}%;"></div>
+                </div>
+                <div class="gauge-footer">
+                    <span>Spent: $${a.toFixed(2)}</span>
+                    <span>Budget: $${p.toFixed(2)}</span>
+                </div>
             `;
-            trackArea.appendChild(col);
+            gaugeListEl.appendChild(itemEl);
         });
     }
 
@@ -1153,7 +1233,7 @@
         renderDashboard();
     });
 
-    // 4. HISTORY & BACKUP
+    // 4. HISTORY
     function renderHistory() {
         const selMonth = document.getElementById('hist-filter-month').value;
         const selYear = document.getElementById('hist-filter-year').value;
@@ -1207,6 +1287,22 @@
         renderHistory();
     }
 
+    // 5. SETTINGS
+    function renderSettings() {
+        document.getElementById('app-version-badge').innerText = APP_VERSION;
+        document.getElementById('settings-tx-count').innerText = transactions.length.toString();
+        document.getElementById('settings-plan-count').innerText = planItems.length.toString();
+
+        const lastBackupStr = localStorage.getItem('app_last_backup_date');
+        const backupValEl = document.getElementById('settings-last-backup');
+        if (lastBackupStr) {
+            const d = new Date(parseInt(lastBackupStr, 10));
+            backupValEl.innerText = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } else {
+            backupValEl.innerText = 'Never';
+        }
+    }
+
     function exportToCSV() {
         if (transactions.length === 0) {
             alert('No transactions to export.');
@@ -1223,17 +1319,17 @@
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.setAttribute('href', url);
-        link.setAttribute('download', `budget_transactions_${getTodayLocal()}.csv`);
+        link.setAttribute('download', `easy_budget_transactions_${getTodayLocal()}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
     }
 
-    // Exportar Backup Completo JSON e Atualizar Carimbo de Tempo
     function exportCompleteBackup() {
         const backupData = {
-            version: '5.9',
+            app: 'Easy Budget',
+            version: APP_VERSION,
             exportDate: new Date().toISOString(),
             transactions: transactions,
             planning: planItems
@@ -1244,15 +1340,15 @@
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.setAttribute('href', url);
-        link.setAttribute('download', `budget_complete_backup_${getTodayLocal()}.json`);
+        link.setAttribute('download', `easy_budget_backup_${getTodayLocal()}.json`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
 
-        // Atualiza a data do último backup e fecha o lembrete
         localStorage.setItem('app_last_backup_date', new Date().getTime().toString());
         dismissBackupReminder();
+        if (viewSettings.classList.contains('active')) renderSettings();
     }
 
     function importCompleteBackup(event) {
@@ -1272,7 +1368,6 @@
                     localStorage.setItem('app_plan_v2', JSON.stringify(planItems));
                 }
 
-                // Carimba o backup restaurado como o mais recente
                 localStorage.setItem('app_last_backup_date', new Date().getTime().toString());
                 dismissBackupReminder();
 
@@ -1280,9 +1375,10 @@
                 renderPlanning();
                 renderDashboard();
                 renderHistory();
+                renderSettings();
                 alert('Backup restored successfully!');
             } catch (err) {
-                alert('Invalid backup file. Please select a valid JSON backup.');
+                alert('Invalid backup file. Please select a valid Easy Budget JSON backup.');
             }
             event.target.value = '';
         };
