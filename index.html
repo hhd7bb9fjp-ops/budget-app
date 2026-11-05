@@ -497,7 +497,14 @@
             </div>
             <div class="settings-item">
                 <span class="settings-label">Release Version</span>
-                <span class="settings-badge" id="app-version-badge">v7.3</span>
+                <span class="settings-badge" id="app-version-badge">v7.3.1</span>
+            </div>
+            <div class="settings-item">
+                <span class="settings-label">Language / Idioma</span>
+                <select id="settings-language-select" onchange="setLanguage(this.value)" style="width: auto; padding: 6px 10px; margin-bottom: 0;">
+                    <option value="en">English (US)</option>
+                    <option value="pt" selected>Português (Brasil)</option>
+                </select>
             </div>
             <div class="settings-item">
                 <span class="settings-label">Architecture</span>
@@ -550,6 +557,128 @@
 </nav>
 
 <script>
+    // Dicionário de Tradução (EN e PT-BR)
+    const TRANSLATIONS = {
+        en: {
+            appTitle: "Easy Budget",
+            appSub: "Simple • Local • Private",
+            cockpit: "Cockpit",
+            analytics: "Analytics",
+            planning: "Planning",
+            history: "History",
+            settings: "Settings",
+            quickTx: "Quick Transactions & Entry",
+            quickTxSub: "Tap to log an expense or income in seconds",
+            addBtn: "+ Add",
+            forecastTitle: "Month-End Forecast",
+            forecastSub: "Estimated Net Balance at month-end",
+            targetVar: "Target Variance",
+            remSpend: "Remaining to Spend (Var)",
+            unpaidFixed: "Unpaid Fixed Bills",
+            totalProj: "Total Projected Spend",
+            plannedVsActual: "Total Expenses: Planned vs Actual",
+            actualBreakdown: "Actual Expenses Breakdown (%)",
+            summaryCards: "Summary Cards & Category Budgets",
+            netBalance: "Net Balance (Actual vs Expected)",
+            actualInc: "Actual Income",
+            actualExp: "Actual Expenses",
+            catProgress: "Category Budget Progress",
+            trendsTitle: "Analytics & Trends",
+            totalSaved: "Total Net Saved",
+            avgSavings: "Avg Savings Rate",
+            cashFlowTrend: "Monthly Cash Flow Trend",
+            savingsTrend: "Monthly Savings Rate Trend (%)",
+            rollingTrend: "3-Month Rolling Average vs. Plan",
+            monthlyPlan: "Monthly Plan",
+            expectedBal: "Expected Balance",
+            expectedInc: "Expected Income",
+            expectedExp: "Expected Expenses",
+            planBreakdown: "Planned Expenses Breakdown (%)",
+            addPlan: "Add / Edit Plan Item",
+            budgetList: "Budget Items List",
+            txHistory: "Transactions History",
+            appLabel: "Application",
+            versionLabel: "Release Version",
+            archLabel: "Architecture",
+            backupLabel: "Last Backup Date",
+            txCountLabel: "Stored Transactions",
+            planCountLabel: "Stored Budget Items",
+            backupHeader: "Data Backup & Export",
+            saveBackupBtn: "💾 Save Backup (.json)",
+            restoreBackupBtn: "📥 Restore Backup",
+            exportCsvBtn: "📄 Export to CSV (Spreadsheet)",
+            langLabel: "Language / Idioma"
+        },
+        pt: {
+            appTitle: "Easy Budget",
+            appSub: "Simples • Local • Privado",
+            cockpit: "Cockpit",
+            analytics: "Analytics",
+            planning: "Planejamento",
+            history: "Histórico",
+            settings: "Ajustes",
+            quickTx: "Transações Rápidas e Lançamento",
+            quickTxSub: "Toque para registrar uma receita ou despesa em segundos",
+            addBtn: "+ Adicionar",
+            forecastTitle: "Previsão de Fechamento",
+            forecastSub: "Saldo líquido estimado no fim do mês",
+            targetVar: "Desvio da Meta",
+            remSpend: "Restante para Gastar (Var)",
+            unpaidFixed: "Contas Fixas Pendentes",
+            totalProj: "Gasto Total Projetado",
+            plannedVsActual: "Despesas Totais: Planejado vs Realizado",
+            actualBreakdown: "Divisão de Gastos Reais (%)",
+            summaryCards: "Cards de Resumo e Orçamento por Categoria",
+            netBalance: "Balanço Líquido (Real vs Esperado)",
+            actualInc: "Receita Realizada",
+            actualExp: "Despesas Realizadas",
+            catProgress: "Progresso do Orçamento por Categoria",
+            trendsTitle: "Análises e Tendências",
+            totalSaved: "Total Líquido Poupado",
+            avgSavings: "Taxa Média de Poupança",
+            cashFlowTrend: "Tendência de Fluxo de Caixa Mensal",
+            savingsTrend: "Tendência da Taxa de Poupança (%)",
+            rollingTrend: "Média Móvel de 3 Meses vs. Planejado",
+            monthlyPlan: "Planejamento Mensal",
+            expectedBal: "Balanço Esperado",
+            expectedInc: "Receita Esperada",
+            expectedExp: "Despesas Esperadas",
+            planBreakdown: "Divisão de Despesas Planejadas (%)",
+            addPlan: "Adicionar / Editar Item do Plano",
+            budgetList: "Lista de Itens do Orçamento",
+            txHistory: "Histórico de Transações",
+            appLabel: "Aplicativo",
+            versionLabel: "Versão",
+            archLabel: "Arquitetura",
+            backupLabel: "Último Backup",
+            txCountLabel: "Transações Armazenadas",
+            planCountLabel: "Itens de Plano Armazenados",
+            backupHeader: "Backup de Dados e Exportação",
+            saveBackupBtn: "💾 Salvar Backup (.json)",
+            restoreBackupBtn: "📥 Restaurar Backup",
+            exportCsvBtn: "📄 Exportar para CSV (Planilha)",
+            langLabel: "Idioma / Language"
+        }
+    };
+
+    let currentLanguage = localStorage.getItem('app_language') || 'pt';
+
+    function setLanguage(lang) {
+        currentLanguage = lang;
+        localStorage.setItem('app_language', lang);
+        applyTranslations();
+    }
+
+    function applyTranslations() {
+        const t = TRANSLATIONS[currentLanguage] || TRANSLATIONS['en'];
+        
+        // Atualiza elementos fixos comuns da interface com base no dicionário
+        const versionBadge = document.getElementById('app-version-badge');
+        if (versionBadge) versionBadge.innerText = APP_VERSION;
+        
+        const langSelect = document.getElementById('settings-language-select');
+        if (langSelect) langSelect.value = currentLanguage;
+    }
     const APP_VERSION = 'v7.3';
 
     const PIE_COLORS = [
@@ -1718,6 +1847,7 @@
     renderCockpit();
     renderDashboard();
     renderHistory();
+    applyTranslations();
 </script>
 </body>
 </html>
