@@ -35,6 +35,7 @@
 
         .filter-section { background: #ffffff; padding: 12px 16px; border-radius: 14px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; gap: 10px; align-items: center; }
         .filter-section select { margin-bottom: 0; flex: 1; }
+        .btn-filter-clear { background: #8e8e93; color: white; border: none; padding: 12px 14px; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; white-space: nowrap; width: auto; margin-bottom: 0; }
 
         .forecast-card { background: linear-gradient(135deg, #1c1c1e, #2c2c2e); color: #ffffff; padding: 18px; border-radius: 16px; margin-bottom: 16px; box-shadow: 0 4px 14px rgba(0,0,0,0.12); }
         .forecast-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
@@ -61,7 +62,8 @@
         .btn-csv { background: #34c759; grid-column: span 2; }
 
         .chart-container { background: #ffffff; padding: 16px; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 16px; }
-        .chart-box-title { font-size: 15px; font-weight: 600; margin: 0 0 12px 0; text-align: center; color: #1c1c1e; }
+        .chart-box-title { font-size: 15px; font-weight: 600; margin: 0 0 6px 0; text-align: center; color: #1c1c1e; }
+        .chart-box-sub { font-size: 11px; color: #8e8e93; text-align: center; margin: 0 0 12px 0; }
         
         .bars-wrapper-simple { display: flex; align-items: flex-end; justify-content: center; height: 140px; gap: 28px; padding: 25px 20px 0 20px; border-bottom: 2px solid #e5e5ea; box-sizing: border-box; }
         .bar-group-simple { flex: 1; max-width: 100px; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; position: relative; }
@@ -71,15 +73,19 @@
         .bar-value-simple { font-size: 12px; font-weight: 700; position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 100%; text-align: center; color: #1c1c1e; white-space: nowrap; }
         .bar-label-simple { font-size: 12px; font-weight: 600; color: #8e8e93; margin-top: 8px; text-align: center; }
 
-        /* Gráfico de Tendências Mensais (Scroll Horizontal Suave) */
+        /* Gráficos de Tendências Mensais (Alturas em PX + Rótulos de Valor) */
         .trends-chart-wrapper { overflow-x: auto; padding-bottom: 8px; -webkit-overflow-scrolling: touch; }
-        .trends-chart-track { display: inline-flex; align-items: flex-end; height: 200px; gap: 16px; padding: 32px 12px 0 12px; min-width: 100%; border-bottom: 2px solid #e5e5ea; box-sizing: border-box; }
-        .trends-month-col { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; width: 72px; flex-shrink: 0; }
-        .trends-pair-wrapper { display: flex; align-items: flex-end; justify-content: center; gap: 4px; width: 100%; height: 100%; }
-        .trend-bar { width: 22px; border-radius: 5px 5px 0 0; position: relative; transition: height 0.3s ease; min-height: 2px; }
+        .trends-chart-track { display: inline-flex; align-items: flex-end; height: 185px; gap: 14px; padding: 28px 10px 0 10px; min-width: 100%; border-bottom: 2px solid #e5e5ea; box-sizing: border-box; }
+        .trends-month-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; width: 78px; flex-shrink: 0; }
+        .trends-pair-wrapper { display: flex; align-items: flex-end; justify-content: center; gap: 6px; width: 100%; height: 135px; }
+        .trend-bar { width: 30px; border-radius: 5px 5px 0 0; position: relative; transition: height 0.3s ease; }
         .trend-bar-inc { background-color: #34c759; }
         .trend-bar-exp { background-color: #ff3b30; }
-        .trend-tag { font-size: 8px; font-weight: 700; position: absolute; top: -16px; width: 100%; text-align: center; color: #3a3a3c; }
+        .trend-bar-sav { background-color: #007aff; width: 42px; }
+        .trend-bar-neg { background-color: #ff9500; width: 42px; }
+        .trend-tag { font-size: 9px; font-weight: 700; position: absolute; top: -16px; left: 50%; transform: translateX(-50%); white-space: nowrap; color: #1c1c1e; }
+        .trend-month-label { font-size: 11px; font-weight: 600; color: #636366; margin-top: 8px; text-align: center; }
+        .trend-sub-label { font-size: 9px; font-weight: 500; color: #8e8e93; margin-top: 1px; text-align: center; }
 
         .gauge-list { display: flex; flex-direction: column; gap: 14px; }
         .gauge-item { background: #ffffff; border-bottom: 1px solid #f2f2f7; padding-bottom: 12px; }
@@ -287,18 +293,12 @@
         </div>
     </div>
 
-    <!-- TELA 2: DASHBOARD (Analytics & Trends com Seletor de Range) -->
+    <!-- TELA 2: DASHBOARD (Analytics & Trends Completo) -->
     <div id="view-dashboard" class="view">
         <h2>Analytics & Trends</h2>
         
-        <!-- SELETOR DE RANGE HISTÓRICO -->
         <div class="filter-section">
-            <select id="trend-range-year" onchange="renderDashboard()">
-                <option value="2025" selected>Year 2025</option>
-                <option value="ALL">All Recorded Years</option>
-                <option value="2024">Year 2024</option>
-                <option value="2026">Year 2026</option>
-            </select>
+            <select id="trend-range-year" onchange="renderDashboard()"></select>
         </div>
 
         <div class="dashboard">
@@ -312,15 +312,33 @@
             </div>
         </div>
 
+        <!-- GRÁFICO 1: Monthly Cash Flow (Income vs Expenses) -->
         <div class="chart-container">
-            <div class="chart-box-title">Monthly Cash Flow Trend (Income vs Expenses)</div>
-            <div class="chart-legend-box" style="display:flex; justify-content:center; gap:16px; margin-bottom:12px; font-size:12px; font-weight:600; color:#636366;">
-                <span class="legend-indicator"><span class="legend-dot" style="background:#34c759; width:10px; height:10px; border-radius:3px; display:inline-block;"></span> Income</span>
-                <span class="legend-indicator"><span class="legend-dot" style="background:#ff3b30; width:10px; height:10px; border-radius:3px; display:inline-block;"></span> Expenses</span>
+            <div class="chart-box-title">Monthly Cash Flow Trend</div>
+            <div class="chart-box-sub">Income vs. Expenses ($ per month)</div>
+            <div style="display:flex; justify-content:center; gap:16px; margin-bottom:8px; font-size:12px; font-weight:600; color:#636366;">
+                <span style="display:inline-flex; align-items:center; gap:6px;"><span style="background:#34c759; width:10px; height:10px; border-radius:3px; display:inline-block;"></span> Income</span>
+                <span style="display:inline-flex; align-items:center; gap:6px;"><span style="background:#ff3b30; width:10px; height:10px; border-radius:3px; display:inline-block;"></span> Expenses</span>
             </div>
             <div class="trends-chart-wrapper">
-                <div class="trends-chart-track" id="trends-chart-track"></div>
+                <div class="trends-chart-track" id="trends-cashflow-track"></div>
             </div>
+        </div>
+
+        <!-- GRÁFICO 2: Savings Rate Trend (%) -->
+        <div class="chart-container">
+            <div class="chart-box-title">Monthly Savings Rate Trend (%)</div>
+            <div class="chart-box-sub">Percentage of income saved each month</div>
+            <div class="trends-chart-wrapper">
+                <div class="trends-chart-track" id="trends-savings-track"></div>
+            </div>
+        </div>
+
+        <!-- GRÁFICO 3: 3-Month Rolling Average (Variable Lifestyle & Investments) -->
+        <div class="chart-container">
+            <div class="chart-box-title">3-Month Rolling Average vs. Plan</div>
+            <div class="chart-box-sub" id="rolling-avg-subtitle">Average monthly spend in recent 3 active months</div>
+            <div class="gauge-list" id="trends-rolling-list"></div>
         </div>
     </div>
 
@@ -450,7 +468,7 @@
             </div>
             <div class="settings-item">
                 <span class="settings-label">Release Version</span>
-                <span class="settings-badge" id="app-version-badge">v7.1</span>
+                <span class="settings-badge" id="app-version-badge">v7.2</span>
             </div>
             <div class="settings-item">
                 <span class="settings-label">Architecture</span>
@@ -503,7 +521,7 @@
 </nav>
 
 <script>
-    const APP_VERSION = 'v7.1';
+    const APP_VERSION = 'v7.2';
 
     const PIE_COLORS = [
         '#007aff', '#ff3b30', '#34c759', '#ff9500', '#5856d6',
@@ -749,20 +767,71 @@
         `;
     }
 
-    const currentYearStr = new Date().getFullYear().toString();
+    const currentYearNum = new Date().getFullYear();
+    const currentYearStr = currentYearNum.toString();
     const currentMonthStr = String(new Date().getMonth() + 1).padStart(2, '0');
 
-    const yearSelect = document.getElementById('filter-year');
-    const planYearSelect = document.getElementById('plan-filter-year');
-    const histYearSelect = document.getElementById('hist-filter-year');
-    
-    let yearOptionsHTML = '';
-    for (let y = 2024; y <= 2030; y++) {
-        yearOptionsHTML += `<option value="${y}" ${y.toString() === currentYearStr ? 'selected' : ''}>${y}</option>`;
+    let transactions = JSON.parse(localStorage.getItem('app_transactions_v2')) || [];
+    let planItems = JSON.parse(localStorage.getItem('app_plan_v2')) || [];
+
+    // Populador de seletores de ano (Ano Atual em 1º e Default, depois ordem cronológica inversa)
+    function populateYearSelects() {
+        const yearSelect = document.getElementById('filter-year');
+        const planYearSelect = document.getElementById('plan-filter-year');
+        const histYearSelect = document.getElementById('hist-filter-year');
+        const trendYearSelect = document.getElementById('trend-range-year');
+
+        const prevFilterY = yearSelect.value || currentYearStr;
+        const prevPlanY = planYearSelect.value || currentYearStr;
+        const prevHistY = histYearSelect.value || currentYearStr;
+        const prevTrendY = trendYearSelect.value || currentYearStr;
+
+        const yearsSet = new Set([currentYearNum, currentYearNum - 1, currentYearNum - 2]);
+        transactions.forEach(t => {
+            if (t.date) {
+                const y = parseInt(t.date.split('-')[0], 10);
+                if (!isNaN(y)) yearsSet.add(y);
+            }
+        });
+        planItems.forEach(p => {
+            if (p.date) {
+                const y = parseInt(p.date.split('-')[0], 10);
+                if (!isNaN(y)) yearsSet.add(y);
+            }
+        });
+
+        // Outros anos em ordem cronológica inversa (mais recente primeiro), excluindo currentYearNum do meio para fixá-lo no topo
+        const otherYearsDesc = Array.from(yearsSet)
+            .filter(y => y !== currentYearNum)
+            .sort((a, b) => b - a);
+
+        const orderedYears = [currentYearNum, ...otherYearsDesc];
+
+        let stdOptionsHTML = '';
+        orderedYears.forEach(y => {
+            const label = y === currentYearNum ? `${y} (Current Year)` : `${y}`;
+            stdOptionsHTML += `<option value="${y}">${label}</option>`;
+        });
+
+        yearSelect.innerHTML = stdOptionsHTML;
+        planYearSelect.innerHTML = stdOptionsHTML;
+        histYearSelect.innerHTML = stdOptionsHTML;
+
+        let trendOptionsHTML = '';
+        orderedYears.forEach(y => {
+            const label = y === currentYearNum ? `${y} (Current Year)` : `Year ${y}`;
+            trendOptionsHTML += `<option value="${y}">${label}</option>`;
+        });
+        trendOptionsHTML += `<option value="ALL">All Recorded Years</option>`;
+        trendYearSelect.innerHTML = trendOptionsHTML;
+
+        yearSelect.value = prevFilterY;
+        planYearSelect.value = prevPlanY;
+        histYearSelect.value = prevHistY;
+        trendYearSelect.value = prevTrendY;
     }
-    yearSelect.innerHTML = yearOptionsHTML;
-    planYearSelect.innerHTML = yearOptionsHTML;
-    histYearSelect.innerHTML = yearOptionsHTML;
+
+    populateYearSelects();
 
     document.getElementById('filter-month').value = currentMonthStr;
     document.getElementById('plan-filter-month').value = currentMonthStr;
@@ -813,9 +882,6 @@
     btnSettings.addEventListener('click', () => switchView('settings'));
 
     window.addEventListener('focus', refreshDefaultDates);
-
-    let transactions = JSON.parse(localStorage.getItem('app_transactions_v2')) || [];
-    let planItems = JSON.parse(localStorage.getItem('app_plan_v2')) || [];
 
     function getEffectivePlanForMonth(targetYear, targetMonth) {
         const targetValue = parseInt(targetYear) * 12 + parseInt(targetMonth);
@@ -946,13 +1012,13 @@
             <div class="bars-wrapper-simple">
                 <div class="bar-group-simple">
                     <div class="bar-simple bar-planned" style="height: ${planHeightPx}px;">
-                        <span class="bar-value-simple">$${Math.round(planExp)}</span>
+                        <span class="bar-value-simple">$${Math.round(planExp).toLocaleString()}</span>
                     </div>
                     <span class="bar-label-simple">Planned</span>
                 </div>
                 <div class="bar-group-simple">
                     <div class="bar-simple bar-actual" style="height: ${actHeightPx}px;">
-                        <span class="bar-value-simple">$${Math.round(actExp)}</span>
+                        <span class="bar-value-simple">$${Math.round(actExp).toLocaleString()}</span>
                     </div>
                     <span class="bar-label-simple">Actual</span>
                 </div>
@@ -1044,11 +1110,10 @@
         });
     }
 
-    // 2. DASHBOARD (Analytics & Trends com Renderizador de Gráfico de Linha/Colunas Mensal)
+    // 2. DASHBOARD (Analytics & Trends — 3 Indicadores Históricos Completos)
     function renderDashboard() {
         const selectedRange = document.getElementById('trend-range-year').value;
 
-        // Filtrar transações baseado no range selecionado
         const filtered = transactions.filter(t => {
             if (!t.date) return false;
             const y = t.date.split('-')[0];
@@ -1056,19 +1121,19 @@
             return true;
         });
 
-        // Agrupar por Mês (ex: "2025-01", "2025-02"...)
         const monthlyMap = {};
         filtered.forEach(t => {
             if (!t.date) return;
             const monthKey = t.date.substring(0, 7); // YYYY-MM
             if (!monthlyMap[monthKey]) {
-                monthlyMap[monthKey] = { income: 0, expense: 0 };
+                monthlyMap[monthKey] = { income: 0, expense: 0, byCat: {} };
             }
             const val = parseFloat(t.amount) || 0;
             if (t.type === 'income') {
                 monthlyMap[monthKey].income += val;
             } else {
                 monthlyMap[monthKey].expense += val;
+                monthlyMap[monthKey].byCat[t.category] = (monthlyMap[monthKey].byCat[t.category] || 0) + val;
             }
         });
 
@@ -1092,28 +1157,37 @@
         document.getElementById('trend-net-saved').className = totalNetSaved >= 0 ? 'text-green' : 'text-red';
         document.getElementById('trend-savings-rate').innerText = avgSavingsRate.toFixed(1) + '%';
 
-        // Renderizar o Gráfico de Tendências no Track
-        const track = document.getElementById('trends-chart-track');
-        track.innerHTML = '';
+        const cfTrack = document.getElementById('trends-cashflow-track');
+        const savTrack = document.getElementById('trends-savings-track');
+        const rollingListEl = document.getElementById('trends-rolling-list');
+
+        cfTrack.innerHTML = '';
+        savTrack.innerHTML = '';
+        rollingListEl.innerHTML = '';
 
         if (sortedMonths.length === 0) {
-            track.innerHTML = '<p style="text-align:center;color:#8e8e93;margin:auto;font-size:13px;width:100%;">No data found for this range.</p>';
+            const emptyMsg = `<p style="text-align:center;color:#8e8e93;margin:auto;font-size:13px;width:100%;">No transactions recorded for ${selectedRange === 'ALL' ? 'any year' : selectedRange}. Select 2025 above to inspect your test data.</p>`;
+            cfTrack.innerHTML = emptyMsg;
+            savTrack.innerHTML = emptyMsg;
+            rollingListEl.innerHTML = emptyMsg;
             return;
         }
 
-        let maxVal = 10;
+        // --- GRÁFICO 1: Monthly Cash Flow (Alturas em PX proporcionais) ---
+        let maxCashFlow = 10;
         sortedMonths.forEach(mKey => {
             const d = monthlyMap[mKey];
-            if (d.income > maxVal) maxVal = d.income;
-            if (d.expense > maxVal) maxVal = d.expense;
+            if (d.income > maxCashFlow) maxCashFlow = d.income;
+            if (d.expense > maxCashFlow) maxCashFlow = d.expense;
         });
 
+        const MAX_BAR_PX = 125;
+
         sortedMonths.forEach(mKey => {
             const d = monthlyMap[mKey];
-            const incH = Math.max(Math.round((d.income / maxVal) * 150), d.income > 0 ? 4 : 0);
-            const expH = Math.max(Math.round((d.expense / maxVal) * 150), d.expense > 0 ? 4 : 0);
+            const incPx = Math.max(Math.round((d.income / maxCashFlow) * MAX_BAR_PX), d.income > 0 ? 6 : 2);
+            const expPx = Math.max(Math.round((d.expense / maxCashFlow) * MAX_BAR_PX), d.expense > 0 ? 6 : 2);
 
-            // Formatar legenda curta do mês (ex: "Jan 25")
             const [y, m] = mKey.split('-');
             const dateObj = new Date(parseInt(y), parseInt(m) - 1, 1);
             const labelStr = dateObj.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
@@ -1122,16 +1196,121 @@
             col.className = 'trends-month-col';
             col.innerHTML = `
                 <div class="trends-pair-wrapper">
-                    <div class="trend-bar trend-bar-inc" style="height: ${incH}%;">
-                        <span class="trend-tag">${d.income > 0 ? '$' + Math.round(d.income) : ''}</span>
+                    <div class="trend-bar trend-bar-inc" style="height: ${incPx}px;">
+                        <span class="trend-tag">$${Math.round(d.income).toLocaleString()}</span>
                     </div>
-                    <div class="trend-bar trend-bar-exp" style="height: ${expH}%;">
-                        <span class="trend-tag">${d.expense > 0 ? '$' + Math.round(d.expense) : ''}</span>
+                    <div class="trend-bar trend-bar-exp" style="height: ${expPx}px;">
+                        <span class="trend-tag">$${Math.round(d.expense).toLocaleString()}</span>
                     </div>
                 </div>
-                <span class="col-caption" style="font-size:10px; margin-top:6px; color:#636366;">${labelStr}</span>
+                <span class="trend-month-label">${labelStr}</span>
             `;
-            track.appendChild(col);
+            cfTrack.appendChild(col);
+        });
+
+        // --- GRÁFICO 2: Monthly Savings Rate Trend (%) ---
+        let maxSavRate = 25;
+        sortedMonths.forEach(mKey => {
+            const d = monthlyMap[mKey];
+            const rate = d.income > 0 ? ((d.income - d.expense) / d.income) * 100 : 0;
+            if (Math.abs(rate) > maxSavRate) maxSavRate = Math.abs(rate);
+        });
+
+        sortedMonths.forEach(mKey => {
+            const d = monthlyMap[mKey];
+            const net = d.income - d.expense;
+            const rate = d.income > 0 ? (net / d.income) * 100 : 0;
+            const barPx = Math.max(Math.round((Math.abs(rate) / maxSavRate) * MAX_BAR_PX), Math.abs(rate) > 0 ? 6 : 2);
+            const barClass = rate >= 0 ? 'trend-bar-sav' : 'trend-bar-neg';
+
+            const [y, m] = mKey.split('-');
+            const dateObj = new Date(parseInt(y), parseInt(m) - 1, 1);
+            const labelStr = dateObj.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+
+            const col = document.createElement('div');
+            col.className = 'trends-month-col';
+            col.innerHTML = `
+                <div class="trends-pair-wrapper">
+                    <div class="trend-bar ${barClass}" style="height: ${barPx}px;">
+                        <span class="trend-tag">${rate.toFixed(1)}%</span>
+                    </div>
+                </div>
+                <span class="trend-month-label">${labelStr}</span>
+                <span class="trend-sub-label">${net >= 0 ? '+' : '-'}$${Math.abs(Math.round(net))}</span>
+            `;
+            savTrack.appendChild(col);
+        });
+
+        // --- GRÁFICO 3: 3-Month Rolling Average vs. Planned (Variable Categories) ---
+        const recentMonths = sortedMonths.slice(-3);
+        const numRollingMonths = recentMonths.length;
+        const lastMonthKey = recentMonths[recentMonths.length - 1];
+        const [lastY, lastM] = lastMonthKey.split('-');
+        const effectivePlan = getEffectivePlanForMonth(lastY, lastM);
+
+        document.getElementById('rolling-avg-subtitle').innerText = 
+            `Average monthly variable spend across last ${numRollingMonths} active month(s) (${recentMonths.join(', ')})`;
+
+        const rollingCatTotals = {};
+        recentMonths.forEach(mKey => {
+            const byCat = monthlyMap[mKey].byCat;
+            Object.entries(byCat).forEach(([cat, val]) => {
+                if (!isFixedCategory(cat)) {
+                    rollingCatTotals[cat] = (rollingCatTotals[cat] || 0) + val;
+                }
+            });
+        });
+
+        const varCategories = Object.keys(rollingCatTotals);
+        varCategories.sort((a, b) => rollingCatTotals[b] - rollingCatTotals[a]);
+
+        if (varCategories.length === 0) {
+            rollingListEl.innerHTML = '<p style="text-align:center;color:#8e8e93;font-size:13px;">No variable expenses recorded in this period.</p>';
+            return;
+        }
+
+        varCategories.forEach(cat => {
+            const avgSpend = rollingCatTotals[cat] / numRollingMonths;
+            const planItem = effectivePlan.find(p => p.category === cat && p.type !== 'income');
+            const plannedVal = planItem ? (parseFloat(planItem.amount) || 0) : 0;
+
+            let statusText = '';
+            let statusClass = 'ok';
+            let barWidth = 0;
+
+            if (plannedVal > 0) {
+                const perc = (avgSpend / plannedVal) * 100;
+                barWidth = Math.min(perc, 100);
+                if (avgSpend > plannedVal) {
+                    statusClass = 'danger';
+                    const diff = avgSpend - plannedVal;
+                    statusText = `Avg Over by +$${diff.toFixed(0)}/mo`;
+                } else {
+                    if (perc >= 85) statusClass = 'warning';
+                    statusText = `Within Target (${perc.toFixed(0)}%)`;
+                }
+            } else {
+                barWidth = 100;
+                statusClass = 'warning';
+                statusText = `Unplanned Avg ($${avgSpend.toFixed(0)}/mo)`;
+            }
+
+            const itemEl = document.createElement('div');
+            itemEl.className = 'gauge-item';
+            itemEl.innerHTML = `
+                <div class="gauge-header">
+                    <span class="gauge-cat-title">${cat}</span>
+                    <span class="gauge-status ${statusClass}">${statusText}</span>
+                </div>
+                <div class="gauge-track">
+                    <div class="gauge-fill ${statusClass}" style="width: ${barWidth.toFixed(1)}%;"></div>
+                </div>
+                <div class="gauge-footer">
+                    <span>3-Mo Avg: <strong>$${avgSpend.toFixed(2)}/mo</strong></span>
+                    <span>Monthly Plan: $${plannedVal.toFixed(2)}</span>
+                </div>
+            `;
+            rollingListEl.appendChild(itemEl);
         });
     }
 
@@ -1177,6 +1356,7 @@
         submitBtn.classList.add('btn-warning');
         document.getElementById('btn-cancel-tx').style.display = 'block';
         
+        switchView('cockpit');
         toggleSection('cockpit-tx-collapse-btn', 'cockpit-tx-collapsible-area', true);
         document.getElementById('cockpit-tx-collapse-btn').scrollIntoView({ behavior: 'smooth' });
     };
@@ -1196,7 +1376,10 @@
         if (editingTxIndex === index) cancelEditTx();
         else if (editingTxIndex > index) editingTxIndex--;
         transactions.splice(index, 1);
+        localStorage.setItem('app_transactions_v2', JSON.stringify(transactions));
+        populateYearSelects();
         renderCockpit();
+        renderDashboard();
         renderHistory();
     };
 
@@ -1219,8 +1402,11 @@
             document.getElementById('date').value = getTodayLocal();
             updateCategoryOptions('type', 'category');
         }
+        localStorage.setItem('app_transactions_v2', JSON.stringify(transactions));
         document.getElementById('amount').blur();
+        populateYearSelects();
         renderCockpit();
+        renderDashboard();
         renderHistory();
     });
 
@@ -1280,8 +1466,11 @@
         if (index > -1) {
             if (editingPlanIndex === index) cancelEditPlan();
             planItems.splice(index, 1);
+            localStorage.setItem('app_plan_v2', JSON.stringify(planItems));
+            populateYearSelects();
             renderPlanning();
             renderCockpit();
+            renderDashboard();
         }
     }
 
@@ -1333,10 +1522,13 @@
             document.getElementById('plan-date').value = getTodayLocal();
             updateCategoryOptions('plan-type', 'plan-category');
         }
+        localStorage.setItem('app_plan_v2', JSON.stringify(planItems));
         document.getElementById('plan-amount').blur();
         document.getElementById('plan-description').blur();
+        populateYearSelects();
         renderPlanning();
         renderCockpit();
+        renderDashboard();
     });
 
     // 5. HISTORY
@@ -1477,6 +1669,7 @@
                 localStorage.setItem('app_last_backup_date', new Date().getTime().toString());
                 dismissBackupReminder();
 
+                populateYearSelects();
                 renderTransactionsQuickList();
                 renderPlanning();
                 renderCockpit();
