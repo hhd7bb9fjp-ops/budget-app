@@ -64,7 +64,16 @@
         .chart-container { background: #ffffff; padding: 16px; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 16px; }
         .chart-box-title { font-size: 15px; font-weight: 600; margin: 0 0 12px 0; text-align: center; color: #1c1c1e; }
         
-        /* NOVO DESIGN: Category Gauge List (Progresso Horizontal Individual) */
+        /* Gráfico de Barras Duplo (Planned vs Actual) */
+        .bars-wrapper-simple { display: flex; align-items: flex-end; justify-content: center; height: 140px; gap: 28px; padding: 25px 20px 0 20px; border-bottom: 2px solid #e5e5ea; box-sizing: border-box; }
+        .bar-group-simple { flex: 1; max-width: 100px; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; position: relative; }
+        .bar-simple { width: 100%; max-width: 58px; border-radius: 6px 6px 0 0; position: relative; transition: height 0.3s ease; }
+        .bar-planned { background-color: #007aff; }
+        .bar-actual { background-color: #ff3b30; }
+        .bar-value-simple { font-size: 12px; font-weight: 700; position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 100%; text-align: center; color: #1c1c1e; white-space: nowrap; }
+        .bar-label-simple { font-size: 12px; font-weight: 600; color: #8e8e93; margin-top: 8px; text-align: center; }
+
+        /* Category Gauge List */
         .gauge-list { display: flex; flex-direction: column; gap: 14px; }
         .gauge-item { background: #ffffff; border-bottom: 1px solid #f2f2f7; padding-bottom: 12px; }
         .gauge-item:last-child { border-bottom: none; padding-bottom: 0; }
@@ -82,12 +91,6 @@
         .gauge-fill.danger { background-color: #ff3b30; }
 
         .gauge-footer { display: flex; justify-content: space-between; font-size: 11px; color: #8e8e93; }
-
-        .bars-wrapper-simple { display: flex; align-items: flex-end; height: 130px; gap: 20px; padding: 22px 20px 0 20px; border-bottom: 2px solid #e5e5ea; }
-        .bar-group-simple { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
-        .bar-simple { width: 100%; max-width: 55px; border-radius: 6px 6px 0 0; position: relative; transition: height 0.3s ease; min-height: 2px; }
-        .bar-value-simple { font-size: 11px; font-weight: bold; position: absolute; top: -18px; width: 100%; text-align: center; color: #1c1c1e; }
-        .bar-label-simple { font-size: 12px; font-weight: 500; color: #8e8e93; margin-top: 6px; text-align: center; }
 
         .pie-wrapper { display: flex; flex-direction: column; align-items: center; gap: 16px; }
         .pie-chart { width: 160px; height: 160px; border-radius: 50%; box-shadow: 0 2px 10px rgba(0,0,0,0.08); flex-shrink: 0; }
@@ -212,6 +215,7 @@
             </div>
         </div>
 
+        <!-- GRÁFICO REESTRUTURADO: Planned vs Actual -->
         <div class="chart-container">
             <div class="chart-box-title">Total Expenses: Planned vs Actual</div>
             <div id="dash-plan-actual-chart"></div>
@@ -244,7 +248,6 @@
                 </div>
             </div>
 
-            <!-- NOVO PAINEL VERTICAL DE CATEGORIAS -->
             <div class="chart-container">
                 <div class="chart-box-title">Category Budget Progress</div>
                 <div class="gauge-list" id="category-gauge-list"></div>
@@ -428,7 +431,7 @@
             </div>
             <div class="settings-item">
                 <span class="settings-label">Release Version</span>
-                <span class="settings-badge" id="app-version-badge">v6.2</span>
+                <span class="settings-badge" id="app-version-badge">v6.2.1</span>
             </div>
             <div class="settings-item">
                 <span class="settings-label">Architecture</span>
@@ -481,7 +484,7 @@
 </nav>
 
 <script>
-    const APP_VERSION = 'v6.2';
+    const APP_VERSION = 'v6.2.1';
 
     const PIE_COLORS = [
         '#007aff', '#ff3b30', '#34c759', '#ff9500', '#5856d6',
@@ -848,7 +851,11 @@
         let planInc = 0, planExp = 0;
         effectivePlan.forEach(p => {
             const v = parseFloat(p.amount) || 0;
-            if (p.type === 'income') planInc += v; else planExp += v;
+            if (p.type === 'income') {
+                planInc += v;
+            } else {
+                planExp += v;
+            }
         });
 
         // 1. Cálculo Preditivo
@@ -912,22 +919,23 @@
         document.getElementById('forecast-unpaid-fixed').innerText = '$ ' + unpaidFixedBills.toFixed(2);
         document.getElementById('forecast-total-spend').innerText = '$ ' + totalProjectedExpense.toFixed(2);
 
-        // 2. Overview Barras
-        const maxPlanAct = Math.max(planExp, actExp, 10);
-        const planHeight = Math.max(Math.round((planExp / maxPlanAct) * 100), planExp > 0 ? 3 : 0);
-        const actHeight = Math.max(Math.round((actExp / maxPlanAct) * 100), actExp > 0 ? 3 : 0);
+        // 2. Gráfico de Barras Corrigido: Planned vs Actual
+        const maxPlanAct = Math.max(planExp, actExp, 1);
+        const planHeightPx = Math.max(Math.round((planExp / maxPlanAct) * 105), planExp > 0 ? 6 : 2);
+        const actHeightPx = Math.max(Math.round((actExp / maxPlanAct) * 105), actExp > 0 ? 6 : 2);
 
-        document.getElementById('dash-plan-actual-chart').innerHTML = `
+        const chartContainerEl = document.getElementById('dash-plan-actual-chart');
+        chartContainerEl.innerHTML = `
             <div class="bars-wrapper-simple">
                 <div class="bar-group-simple">
-                    <div class="bar-simple bar-planned" style="height: ${planHeight}%;">
-                        <span class="bar-value-simple">$${planExp.toFixed(0)}</span>
+                    <div class="bar-simple bar-planned" style="height: ${planHeightPx}px;">
+                        <span class="bar-value-simple">$${Math.round(planExp)}</span>
                     </div>
                     <span class="bar-label-simple">Planned</span>
                 </div>
                 <div class="bar-group-simple">
-                    <div class="bar-simple bar-actual" style="height: ${actHeight}%;">
-                        <span class="bar-value-simple">$${actExp.toFixed(0)}</span>
+                    <div class="bar-simple bar-actual" style="height: ${actHeightPx}px;">
+                        <span class="bar-value-simple">$${Math.round(actExp)}</span>
                     </div>
                     <span class="bar-label-simple">Actual</span>
                 </div>
@@ -945,7 +953,7 @@
         const netPlan = planInc - planExp;
         document.getElementById('dash-net-balance').innerText = '$ ' + netActual.toFixed(2) + ' (Exp: $' + netPlan.toFixed(2) + ')';
 
-        // 5. NOVO RENDERIZADOR: GAUGE PROGRESS LIST HORIZONTAL
+        // 5. Category Gauge List
         const categoryMap = {};
         effectivePlan.forEach(p => {
             if (p.type !== 'income') {
@@ -968,7 +976,6 @@
             return categoryMap[cat].planned > 0 || categoryMap[cat].actual > 0;
         });
 
-        // Ordena por maior orçamento planejado
         categories.sort((a, b) => categoryMap[b].planned - categoryMap[a].planned);
 
         if (categories.length === 0) {
@@ -999,7 +1006,6 @@
                     statusText = `Left: $${rem.toFixed(2)}`;
                 }
             } else {
-                // Não planejado mas gasto
                 barWidth = 100;
                 statusClass = 'danger';
                 statusText = `Unplanned (+$${a.toFixed(2)})`;
