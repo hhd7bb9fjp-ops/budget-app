@@ -73,7 +73,7 @@
         .bar-value-simple { font-size: 12px; font-weight: 700; position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 100%; text-align: center; color: #1c1c1e; white-space: nowrap; }
         .bar-label-simple { font-size: 12px; font-weight: 600; color: #8e8e93; margin-top: 8px; text-align: center; }
 
-        /* Gráficos de Tendências Mensais (Alturas em PX + Rótulos de Valor) */
+        /* Gráficos de Tendências Mensais */
         .trends-chart-wrapper { overflow-x: auto; padding-bottom: 8px; -webkit-overflow-scrolling: touch; }
         .trends-chart-track { display: inline-flex; align-items: flex-end; height: 185px; gap: 14px; padding: 28px 10px 0 10px; min-width: 100%; border-bottom: 2px solid #e5e5ea; box-sizing: border-box; }
         .trends-month-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; width: 78px; flex-shrink: 0; }
@@ -115,6 +115,25 @@
 
         .collapse-bar { background: #ffffff; color: #007aff; padding: 14px 16px; border-radius: 14px; font-weight: 600; font-size: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 12px; border: 1px solid #e5e5ea; user-select: none; }
         .collapse-bar.plan-theme { color: #5856d6; }
+        
+        /* Destaque Especial para Quick Transactions no Topo do Cockpit */
+        .collapse-bar.quick-tx-hero {
+            background: linear-gradient(135deg, #007aff, #0051a8);
+            color: #ffffff;
+            padding: 16px 18px;
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 6px 16px rgba(0, 122, 255, 0.28);
+            margin-bottom: 16px;
+        }
+        .quick-tx-hero-left { display: flex; align-items: center; gap: 12px; }
+        .quick-tx-icon { font-size: 20px; background: rgba(255,255,255,0.2); width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .quick-tx-text { display: flex; flex-direction: column; text-align: left; }
+        .quick-tx-title { font-size: 16px; font-weight: 800; letter-spacing: -0.2px; }
+        .quick-tx-sub { font-size: 11px; font-weight: 500; opacity: 0.85; margin-top: 1px; }
+        .quick-tx-right { display: flex; align-items: center; gap: 8px; }
+        .quick-tx-badge { background: rgba(255,255,255,0.22); color: #ffffff; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+
         .collapse-bar span.arrow { transition: transform 0.25s ease; font-size: 14px; }
         .collapse-bar.open span.arrow { transform: rotate(180deg); }
         .collapsible-content { display: none; margin-bottom: 16px; }
@@ -136,7 +155,7 @@
         .settings-val { color: #1c1c1e; font-weight: 600; }
         .settings-badge { background: #e5e5ea; color: #1c1c1e; padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; }
 
-        .form-section { background: #ffffff; padding: 16px; border-radius: 14px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden; }
+        .form-section { background: #ffffff; padding: 16px; border-radius: 14px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden; border: 2px solid #007aff; }
         input, select, button { width: 100%; max-width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #e5e5ea; border-radius: 10px; font-size: 16px; box-sizing: border-box; background-color: #ffffff; display: block; }
         input[type="date"] { -webkit-appearance: none; appearance: none; min-width: 0; }
         .btn-primary { background: #007aff; color: white; border: none; font-weight: bold; padding: 14px; cursor: pointer; margin-bottom: 0; }
@@ -178,6 +197,42 @@
             <div class="reminder-actions">
                 <button type="button" class="btn-reminder-backup" onclick="exportCompleteBackup()">Backup Now</button>
                 <button type="button" class="btn-reminder-dismiss" onclick="dismissBackupReminder()" title="Dismiss">✕</button>
+            </div>
+        </div>
+
+        <!-- QUICK TRANSACTIONS NO TOPO COM DESTAQUE HERO -->
+        <div class="collapse-bar quick-tx-hero" id="cockpit-tx-collapse-btn" onclick="toggleSection('cockpit-tx-collapse-btn', 'cockpit-tx-collapsible-area')">
+            <div class="quick-tx-hero-left">
+                <div class="quick-tx-icon">⚡</div>
+                <div class="quick-tx-text">
+                    <span class="quick-tx-title">Quick Transactions & Entry</span>
+                    <span class="quick-tx-sub">Tap to log an expense or income in seconds</span>
+                </div>
+            </div>
+            <div class="quick-tx-right">
+                <span class="quick-tx-badge">+ Add</span>
+                <span class="arrow">▼</span>
+            </div>
+        </div>
+
+        <div class="collapsible-content" id="cockpit-tx-collapsible-area">
+            <div class="form-section">
+                <form id="transaction-form">
+                    <input type="date" id="date" required>
+                    <select id="type" onchange="updateCategoryOptions('type', 'category')">
+                        <option value="expense" selected>Expense (-)</option>
+                        <option value="income">Income (+)</option>
+                    </select>
+                    <select id="category" required></select>
+                    <input type="number" id="amount" placeholder="Amount ($)" step="0.01" required>
+                    <input type="text" id="description" placeholder="Description (e.g., Groceries)" required>
+                    <button type="submit" id="btn-submit-tx" class="btn-primary">Add Transaction</button>
+                    <button type="button" id="btn-cancel-tx" class="btn-cancel" onclick="cancelEditTx()">Cancel Edit</button>
+                </form>
+            </div>
+            <div class="chart-container" style="padding: 12px;">
+                <div class="chart-box-title" style="margin-bottom: 8px;">Recent Activity</div>
+                <ul id="transaction-list" class="list" style="max-height: 250px; overflow-y: auto;"></ul>
             </div>
         </div>
         
@@ -228,32 +283,6 @@
             </div>
         </div>
 
-        <div class="collapse-bar" id="cockpit-tx-collapse-btn" onclick="toggleSection('cockpit-tx-collapse-btn', 'cockpit-tx-collapsible-area')">
-            <span>⚡ Quick Transactions & Entry</span>
-            <span class="arrow">▼</span>
-        </div>
-
-        <div class="collapsible-content" id="cockpit-tx-collapsible-area">
-            <div class="form-section">
-                <form id="transaction-form">
-                    <input type="date" id="date" required>
-                    <select id="type" onchange="updateCategoryOptions('type', 'category')">
-                        <option value="expense" selected>Expense (-)</option>
-                        <option value="income">Income (+)</option>
-                    </select>
-                    <select id="category" required></select>
-                    <input type="number" id="amount" placeholder="Amount ($)" step="0.01" required>
-                    <input type="text" id="description" placeholder="Description (e.g., Groceries)" required>
-                    <button type="submit" id="btn-submit-tx" class="btn-primary">Add Transaction</button>
-                    <button type="button" id="btn-cancel-tx" class="btn-cancel" onclick="cancelEditTx()">Cancel Edit</button>
-                </form>
-            </div>
-            <div class="chart-container" style="padding: 12px;">
-                <div class="chart-box-title" style="margin-bottom: 8px;">Recent Activity</div>
-                <ul id="transaction-list" class="list" style="max-height: 250px; overflow-y: auto;"></ul>
-            </div>
-        </div>
-
         <div class="chart-container">
             <div class="chart-box-title">Total Expenses: Planned vs Actual</div>
             <div id="dash-plan-actual-chart"></div>
@@ -293,7 +322,7 @@
         </div>
     </div>
 
-    <!-- TELA 2: DASHBOARD (Analytics & Trends Completo) -->
+    <!-- TELA 2: ANALYTICS & TRENDS -->
     <div id="view-dashboard" class="view">
         <h2>Analytics & Trends</h2>
         
@@ -334,7 +363,7 @@
             </div>
         </div>
 
-        <!-- GRÁFICO 3: 3-Month Rolling Average (Variable Lifestyle & Investments) -->
+        <!-- GRÁFICO 3: 3-Month Rolling Average -->
         <div class="chart-container">
             <div class="chart-box-title">3-Month Rolling Average vs. Plan</div>
             <div class="chart-box-sub" id="rolling-avg-subtitle">Average monthly spend in recent 3 active months</div>
@@ -391,7 +420,7 @@
         </div>
 
         <div class="collapsible-content" id="plan-form-collapsible-area">
-            <div class="form-section">
+            <div class="form-section" style="border-color: #5856d6;">
                 <form id="plan-form">
                     <input type="date" id="plan-date" required>
                     <select id="plan-type" onchange="updateCategoryOptions('plan-type', 'plan-category')">
@@ -468,7 +497,7 @@
             </div>
             <div class="settings-item">
                 <span class="settings-label">Release Version</span>
-                <span class="settings-badge" id="app-version-badge">v7.2</span>
+                <span class="settings-badge" id="app-version-badge">v7.3</span>
             </div>
             <div class="settings-item">
                 <span class="settings-label">Architecture</span>
@@ -507,7 +536,7 @@
         <span>🚀</span> Cockpit
     </button>
     <button type="button" class="nav-item" id="btn-nav-dash">
-        <span>📊</span> Dashboard
+        <span>📊</span> Analytics
     </button>
     <button type="button" class="nav-item" id="btn-nav-plan">
         <span>📋</span> Planning
@@ -521,7 +550,7 @@
 </nav>
 
 <script>
-    const APP_VERSION = 'v7.2';
+    const APP_VERSION = 'v7.3';
 
     const PIE_COLORS = [
         '#007aff', '#ff3b30', '#34c759', '#ff9500', '#5856d6',
@@ -774,7 +803,6 @@
     let transactions = JSON.parse(localStorage.getItem('app_transactions_v2')) || [];
     let planItems = JSON.parse(localStorage.getItem('app_plan_v2')) || [];
 
-    // Populador de seletores de ano (Ano Atual em 1º e Default, depois ordem cronológica inversa)
     function populateYearSelects() {
         const yearSelect = document.getElementById('filter-year');
         const planYearSelect = document.getElementById('plan-filter-year');
@@ -800,7 +828,6 @@
             }
         });
 
-        // Outros anos em ordem cronológica inversa (mais recente primeiro), excluindo currentYearNum do meio para fixá-lo no topo
         const otherYearsDesc = Array.from(yearsSet)
             .filter(y => y !== currentYearNum)
             .sort((a, b) => b - a);
@@ -1110,7 +1137,7 @@
         });
     }
 
-    // 2. DASHBOARD (Analytics & Trends — 3 Indicadores Históricos Completos)
+    // 2. ANALYTICS & TRENDS
     function renderDashboard() {
         const selectedRange = document.getElementById('trend-range-year').value;
 
@@ -1124,7 +1151,7 @@
         const monthlyMap = {};
         filtered.forEach(t => {
             if (!t.date) return;
-            const monthKey = t.date.substring(0, 7); // YYYY-MM
+            const monthKey = t.date.substring(0, 7);
             if (!monthlyMap[monthKey]) {
                 monthlyMap[monthKey] = { income: 0, expense: 0, byCat: {} };
             }
@@ -1173,7 +1200,6 @@
             return;
         }
 
-        // --- GRÁFICO 1: Monthly Cash Flow (Alturas em PX proporcionais) ---
         let maxCashFlow = 10;
         sortedMonths.forEach(mKey => {
             const d = monthlyMap[mKey];
@@ -1208,7 +1234,6 @@
             cfTrack.appendChild(col);
         });
 
-        // --- GRÁFICO 2: Monthly Savings Rate Trend (%) ---
         let maxSavRate = 25;
         sortedMonths.forEach(mKey => {
             const d = monthlyMap[mKey];
@@ -1241,7 +1266,6 @@
             savTrack.appendChild(col);
         });
 
-        // --- GRÁFICO 3: 3-Month Rolling Average vs. Planned (Variable Categories) ---
         const recentMonths = sortedMonths.slice(-3);
         const numRollingMonths = recentMonths.length;
         const lastMonthKey = recentMonths[recentMonths.length - 1];
