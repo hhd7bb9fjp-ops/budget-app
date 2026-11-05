@@ -64,7 +64,6 @@
         .chart-container { background: #ffffff; padding: 16px; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 16px; }
         .chart-box-title { font-size: 15px; font-weight: 600; margin: 0 0 12px 0; text-align: center; color: #1c1c1e; }
         
-        /* Gráfico de Barras Duplo (Planned vs Actual) */
         .bars-wrapper-simple { display: flex; align-items: flex-end; justify-content: center; height: 140px; gap: 28px; padding: 25px 20px 0 20px; border-bottom: 2px solid #e5e5ea; box-sizing: border-box; }
         .bar-group-simple { flex: 1; max-width: 100px; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; position: relative; }
         .bar-simple { width: 100%; max-width: 58px; border-radius: 6px 6px 0 0; position: relative; transition: height 0.3s ease; }
@@ -73,7 +72,6 @@
         .bar-value-simple { font-size: 12px; font-weight: 700; position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 100%; text-align: center; color: #1c1c1e; white-space: nowrap; }
         .bar-label-simple { font-size: 12px; font-weight: 600; color: #8e8e93; margin-top: 8px; text-align: center; }
 
-        /* Category Gauge List */
         .gauge-list { display: flex; flex-direction: column; gap: 14px; }
         .gauge-item { background: #ffffff; border-bottom: 1px solid #f2f2f7; padding-bottom: 12px; }
         .gauge-item:last-child { border-bottom: none; padding-bottom: 0; }
@@ -150,8 +148,8 @@
 
 <div class="container">
     
-    <!-- TELA 1: DASHBOARD -->
-    <div id="view-dashboard" class="view active">
+    <!-- TELA 1: COCKPIT (Antigo Dashboard) -->
+    <div id="view-cockpit" class="view active">
         <div class="app-header">
             <h1>Easy Budget</h1>
             <p>Simple • Local • Private</p>
@@ -169,7 +167,7 @@
         </div>
         
         <div class="filter-section">
-            <select id="filter-month" onchange="renderDashboard()">
+            <select id="filter-month" onchange="renderCockpit()">
                 <option value="ALL">All Months (Year)</option>
                 <option value="01">January</option>
                 <option value="02">February</option>
@@ -184,9 +182,10 @@
                 <option value="11">November</option>
                 <option value="12">December</option>
             </select>
-            <select id="filter-year" onchange="renderDashboard()"></select>
+            <select id="filter-year" onchange="renderCockpit()"></select>
         </div>
 
+        <!-- Card Preditivo de Fechamento -->
         <div class="forecast-card" id="forecast-block">
             <div class="forecast-header">
                 <span class="forecast-title">Month-End Forecast</span>
@@ -215,7 +214,33 @@
             </div>
         </div>
 
-        <!-- GRÁFICO REESTRUTURADO: Planned vs Actual -->
+        <!-- TRANSAÇÕES INCORPORADAS EM BARRA EXPANSÍVEL -->
+        <div class="collapse-bar" id="cockpit-tx-collapse-btn" onclick="toggleSection('cockpit-tx-collapse-btn', 'cockpit-tx-collapsible-area')">
+            <span>⚡ Quick Transactions & Entry</span>
+            <span class="arrow">▼</span>
+        </div>
+
+        <div class="collapsible-content" id="cockpit-tx-collapsible-area">
+            <div class="form-section">
+                <form id="transaction-form">
+                    <input type="date" id="date" required>
+                    <select id="type" onchange="updateCategoryOptions('type', 'category')">
+                        <option value="expense" selected>Expense (-)</option>
+                        <option value="income">Income (+)</option>
+                    </select>
+                    <select id="category" required></select>
+                    <input type="number" id="amount" placeholder="Amount ($)" step="0.01" required>
+                    <input type="text" id="description" placeholder="Description (e.g., Groceries)" required>
+                    <button type="submit" id="btn-submit-tx" class="btn-primary">Add Transaction</button>
+                    <button type="button" id="btn-cancel-tx" class="btn-cancel" onclick="cancelEditTx()">Cancel Edit</button>
+                </form>
+            </div>
+            <div class="chart-container" style="padding: 12px;">
+                <div class="chart-box-title" style="margin-bottom: 8px;">Recent Activity</div>
+                <ul id="transaction-list" class="list" style="max-height: 250px; overflow-y: auto;"></ul>
+            </div>
+        </div>
+
         <div class="chart-container">
             <div class="chart-box-title">Total Expenses: Planned vs Actual</div>
             <div id="dash-plan-actual-chart"></div>
@@ -255,53 +280,30 @@
         </div>
     </div>
 
-    <!-- TELA 2: TRANSACTIONS -->
-    <div id="view-transactions" class="view">
-        <h2>Transactions</h2>
+    <!-- TELA 2: DASHBOARD (Novo Painel Histórico e Tendências) -->
+    <div id="view-dashboard" class="view">
+        <h2>Analytics & Trends</h2>
+        <div class="settings-card" style="text-align: center; padding: 30px 20px;">
+            <h3 style="margin-top: 0; color: #007aff;">Macro Historical Insights</h3>
+            <p style="font-size: 13px; color: #8e8e93; line-height: 1.5;">
+                This section aggregates your multi-month performance, tracking long-term savings rate, rolling averages, and cash flow evolution across all registered years.
+            </p>
+        </div>
         <div class="dashboard">
-            <div class="card balance">
-                <h3>Current Balance</h3>
-                <p id="total-balance">$ 0.00</p>
+            <div class="card">
+                <h3>Total Years Tracked</h3>
+                <p id="trend-years-count">0</p>
             </div>
             <div class="card">
-                <h3>Actual Income</h3>
-                <p id="total-income" class="text-green">$ 0.00</p>
-            </div>
-            <div class="card">
-                <h3>Actual Expenses</h3>
-                <p id="total-expense" class="text-red">$ 0.00</p>
+                <h3>Total Logged Volume</h3>
+                <p id="trend-total-volume" style="font-size: 18px;">$0.00</p>
             </div>
         </div>
-
-        <div class="collapse-bar" id="tx-form-collapse-btn" onclick="toggleSection('tx-form-collapse-btn', 'tx-form-collapsible-area')">
-            <span>Add / Edit Transaction</span>
-            <span class="arrow">▼</span>
-        </div>
-
-        <div class="collapsible-content" id="tx-form-collapsible-area">
-            <div class="form-section">
-                <form id="transaction-form">
-                    <input type="date" id="date" required>
-                    <select id="type" onchange="updateCategoryOptions('type', 'category')">
-                        <option value="expense" selected>Expense (-)</option>
-                        <option value="income">Income (+)</option>
-                    </select>
-                    <select id="category" required></select>
-                    <input type="number" id="amount" placeholder="Amount ($)" step="0.01" required>
-                    <input type="text" id="description" placeholder="Description (e.g., Groceries)" required>
-                    <button type="submit" id="btn-submit-tx" class="btn-primary">Add Transaction</button>
-                    <button type="button" id="btn-cancel-tx" class="btn-cancel" onclick="cancelEditTx()">Cancel Edit</button>
-                </form>
+        <div class="chart-container">
+            <div class="chart-box-title">Annual Cash Flow Overview</div>
+            <div id="trend-yearly-chart" style="padding: 20px; text-align: center; color: #8e8e93; font-size: 13px;">
+                Load your 2025 test dataset in Settings to view annual trend breakdowns.
             </div>
-        </div>
-
-        <div class="collapse-bar" id="tx-list-collapse-btn" onclick="toggleSection('tx-list-collapse-btn', 'tx-list-collapsible-area')">
-            <span>Recent Activity List</span>
-            <span class="arrow">▼</span>
-        </div>
-
-        <div class="collapsible-content" id="tx-list-collapsible-area">
-            <ul id="transaction-list" class="list"></ul>
         </div>
     </div>
 
@@ -431,7 +433,7 @@
             </div>
             <div class="settings-item">
                 <span class="settings-label">Release Version</span>
-                <span class="settings-badge" id="app-version-badge">v6.2.1</span>
+                <span class="settings-badge" id="app-version-badge">v7.0</span>
             </div>
             <div class="settings-item">
                 <span class="settings-label">Architecture</span>
@@ -464,13 +466,13 @@
 
 </div>
 
-<!-- BARRA DE NAVEGAÇÃO -->
+<!-- BARRA DE NAVEGAÇÃO ATUALIZADA -->
 <nav class="bottom-nav">
-    <button type="button" class="nav-item active" id="btn-nav-dash">
-        <span>📊</span> Dashboard
+    <button type="button" class="nav-item active" id="btn-nav-cockpit">
+        <span>🚀</span> Cockpit
     </button>
-    <button type="button" class="nav-item" id="btn-nav-trans">
-        <span>💳</span> Trans.
+    <button type="button" class="nav-item" id="btn-nav-dash">
+        <span>📊</span> Dashboard
     </button>
     <button type="button" class="nav-item" id="btn-nav-plan">
         <span>📋</span> Planning
@@ -484,7 +486,7 @@
 </nav>
 
 <script>
-    const APP_VERSION = 'v6.2.1';
+    const APP_VERSION = 'v7.0';
 
     const PIE_COLORS = [
         '#007aff', '#ff3b30', '#34c759', '#ff9500', '#5856d6',
@@ -752,33 +754,33 @@
     let editingTxIndex = -1;
     let editingPlanIndex = -1;
 
+    const viewCockpit = document.getElementById('view-cockpit');
     const viewDash = document.getElementById('view-dashboard');
-    const viewTrans = document.getElementById('view-transactions');
     const viewPlan = document.getElementById('view-planning');
     const viewHist = document.getElementById('view-history');
     const viewSettings = document.getElementById('view-settings');
     
+    const btnCockpit = document.getElementById('btn-nav-cockpit');
     const btnDash = document.getElementById('btn-nav-dash');
-    const btnTrans = document.getElementById('btn-nav-trans');
     const btnPlan = document.getElementById('btn-nav-plan');
     const btnHist = document.getElementById('btn-nav-hist');
     const btnSettings = document.getElementById('btn-nav-settings');
 
     function switchView(target) {
+        viewCockpit.classList.remove('active');
         viewDash.classList.remove('active');
-        viewTrans.classList.remove('active');
         viewPlan.classList.remove('active');
         viewHist.classList.remove('active');
         viewSettings.classList.remove('active');
         
+        btnCockpit.classList.remove('active');
         btnDash.classList.remove('active');
-        btnTrans.classList.remove('active');
         btnPlan.classList.remove('active');
         btnHist.classList.remove('active');
         btnSettings.classList.remove('active');
 
+        if(target === 'cockpit') { viewCockpit.classList.add('active'); btnCockpit.classList.add('active'); renderCockpit(); }
         if(target === 'dash') { viewDash.classList.add('active'); btnDash.classList.add('active'); renderDashboard(); }
-        if(target === 'trans') { viewTrans.classList.add('active'); btnTrans.classList.add('active'); renderTransactions(); }
         if(target === 'plan') { viewPlan.classList.add('active'); btnPlan.classList.add('active'); renderPlanning(); }
         if(target === 'hist') { viewHist.classList.add('active'); btnHist.classList.add('active'); renderHistory(); }
         if(target === 'settings') { viewSettings.classList.add('active'); btnSettings.classList.add('active'); renderSettings(); }
@@ -787,8 +789,8 @@
         window.scrollTo(0, 0);
     }
 
+    btnCockpit.addEventListener('click', () => switchView('cockpit'));
     btnDash.addEventListener('click', () => switchView('dash'));
-    btnTrans.addEventListener('click', () => switchView('trans'));
     btnPlan.addEventListener('click', () => switchView('plan'));
     btnHist.addEventListener('click', () => switchView('hist'));
     btnSettings.addEventListener('click', () => switchView('settings'));
@@ -818,9 +820,10 @@
         return Object.values(map);
     }
 
-    // 1. DASHBOARD & GAUGE PROGRESS LIST
-    function renderDashboard() {
+    // 1. COCKPIT (Foco no Mês Atual + Transações Integradas)
+    function renderCockpit() {
         checkBackupReminder();
+        renderTransactionsQuickList();
 
         const selectedMonth = document.getElementById('filter-month').value;
         const selectedYear = document.getElementById('filter-year').value;
@@ -858,7 +861,6 @@
             }
         });
 
-        // 1. Cálculo Preditivo
         const allExpenseCategories = new Set([
             ...effectivePlan.filter(p => p.type !== 'income').map(p => p.category),
             ...Object.keys(actualExpensesByCat)
@@ -919,13 +921,11 @@
         document.getElementById('forecast-unpaid-fixed').innerText = '$ ' + unpaidFixedBills.toFixed(2);
         document.getElementById('forecast-total-spend').innerText = '$ ' + totalProjectedExpense.toFixed(2);
 
-        // 2. Gráfico de Barras Corrigido: Planned vs Actual
         const maxPlanAct = Math.max(planExp, actExp, 1);
         const planHeightPx = Math.max(Math.round((planExp / maxPlanAct) * 105), planExp > 0 ? 6 : 2);
         const actHeightPx = Math.max(Math.round((actExp / maxPlanAct) * 105), actExp > 0 ? 6 : 2);
 
-        const chartContainerEl = document.getElementById('dash-plan-actual-chart');
-        chartContainerEl.innerHTML = `
+        document.getElementById('dash-plan-actual-chart').innerHTML = `
             <div class="bars-wrapper-simple">
                 <div class="bar-group-simple">
                     <div class="bar-simple bar-planned" style="height: ${planHeightPx}px;">
@@ -942,18 +942,15 @@
             </div>
         `;
 
-        // 3. Indicador Split + Pizza das Despesas Reais
         renderSplitIndicator('dash-split-container', actualExpensesByCat);
         renderPieChart('dash-pie-area', actualExpensesByCat);
 
-        // 4. Cards de Balanço Tradicional
         document.getElementById('dash-actual-inc').innerText = '$ ' + actInc.toFixed(2);
         document.getElementById('dash-actual-exp').innerText = '$ ' + actExp.toFixed(2);
         const netActual = actInc - actExp;
         const netPlan = planInc - planExp;
         document.getElementById('dash-net-balance').innerText = '$ ' + netActual.toFixed(2) + ' (Exp: $' + netPlan.toFixed(2) + ')';
 
-        // 5. Category Gauge List
         const categoryMap = {};
         effectivePlan.forEach(p => {
             if (p.type !== 'income') {
@@ -1030,34 +1027,49 @@
         });
     }
 
-    // 2. TRANSACTIONS
-    function renderTransactions() {
-        const list = document.getElementById('transaction-list');
-        list.innerHTML = '';
-        let inc = 0, exp = 0;
+    // 2. DASHBOARD (Nova Aba de Tendências e Histórico Macro)
+    function renderDashboard() {
+        let yearsSet = new Set();
+        let totalVol = 0;
 
-        if (transactions.length === 0) {
-            list.innerHTML = '<li style="text-align:center;color:#8e8e93;padding:16px;">No transactions recorded yet.</li>';
-        }
-
-        transactions.forEach((t, i) => {
-            const val = parseFloat(t.amount) || 0;
-            if (t.type === 'income') inc += val; else exp += val;
-
-            const li = document.createElement('li');
-            li.className = 'item';
-            li.innerHTML = '<div class="item-info"><h4>' + t.description + '</h4><p>' + t.category + ' • ' + t.date + '</p></div>' +
-                           '<div class="action-buttons"><span class="' + (t.type === 'income' ? 'text-green' : 'text-red') + '">' +
-                           (t.type === 'income' ? '+' : '-') + '$ ' + val.toFixed(2) + '</span>' +
-                           '<button class="btn-edit" onclick="editTx(' + i + ')">Edit</button>' +
-                           '<button class="btn-delete" onclick="removeTx(' + i + ')">X</button></div>';
-            list.appendChild(li);
+        transactions.forEach(t => {
+            totalVol += (parseFloat(t.amount) || 0);
+            if (t.date) {
+                const y = t.date.split('-')[0];
+                if (y) yearsSet.add(y);
+            }
         });
 
-        document.getElementById('total-income').innerText = '$ ' + inc.toFixed(2);
-        document.getElementById('total-expense').innerText = '$ ' + exp.toFixed(2);
-        document.getElementById('total-balance').innerText = '$ ' + (inc - exp).toFixed(2);
-        localStorage.setItem('app_transactions_v2', JSON.stringify(transactions));
+        document.getElementById('trend-years-count').innerText = yearsSet.size.toString();
+        document.getElementById('trend-total-volume').innerText = '$ ' + totalVol.toFixed(2);
+    }
+
+    // 3. TRANSACTIONS (Lista Rápida no Cockpit)
+    function renderTransactionsQuickList() {
+        const list = document.getElementById('transaction-list');
+        if (!list) return;
+        list.innerHTML = '';
+
+        if (transactions.length === 0) {
+            list.innerHTML = '<li style="text-align:center;color:#8e8e93;padding:12px;font-size:13px;">No transactions recorded yet.</li>';
+            return;
+        }
+
+        const sorted = [...transactions].map((t, originalIndex) => ({ ...t, originalIndex }));
+        sorted.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        sorted.slice(0, 15).forEach((t) => {
+            const val = parseFloat(t.amount) || 0;
+            const li = document.createElement('li');
+            li.className = 'item';
+            li.style.padding = '10px 12px';
+            li.innerHTML = '<div class="item-info"><h4 style="font-size:14px;">' + t.description + '</h4><p style="font-size:11px;">' + t.category + ' • ' + t.date + '</p></div>' +
+                           '<div class="action-buttons"><span style="font-size:13px;font-weight:bold;" class="' + (t.type === 'income' ? 'text-green' : 'text-red') + '">' +
+                           (t.type === 'income' ? '+' : '-') + '$ ' + val.toFixed(2) + '</span>' +
+                           '<button class="btn-edit" style="padding:4px 8px;font-size:11px;" onclick="editTx(' + t.originalIndex + ')">Edit</button>' +
+                           '<button class="btn-delete" style="padding:4px 8px;font-size:11px;" onclick="removeTx(' + t.originalIndex + ')">X</button></div>';
+            list.appendChild(li);
+        });
     }
 
     window.editTx = function(index) {
@@ -1074,9 +1086,8 @@
         submitBtn.classList.add('btn-warning');
         document.getElementById('btn-cancel-tx').style.display = 'block';
         
-        switchView('trans');
-        toggleSection('tx-form-collapse-btn', 'tx-form-collapsible-area', true);
-        document.getElementById('tx-form-collapse-btn').scrollIntoView({ behavior: 'smooth' });
+        toggleSection('cockpit-tx-collapse-btn', 'cockpit-tx-collapsible-area', true);
+        document.getElementById('cockpit-tx-collapse-btn').scrollIntoView({ behavior: 'smooth' });
     };
 
     window.cancelEditTx = function() {
@@ -1094,9 +1105,8 @@
         if (editingTxIndex === index) cancelEditTx();
         else if (editingTxIndex > index) editingTxIndex--;
         transactions.splice(index, 1);
-        renderTransactions();
+        renderCockpit();
         renderHistory();
-        renderDashboard();
     };
 
     document.getElementById('transaction-form').addEventListener('submit', function(e) {
@@ -1119,12 +1129,11 @@
             updateCategoryOptions('type', 'category');
         }
         document.getElementById('amount').blur();
-        renderTransactions();
+        renderCockpit();
         renderHistory();
-        renderDashboard();
     });
 
-    // 3. PLANNING
+    // 4. PLANNING
     function renderPlanning() {
         const selMonth = document.getElementById('plan-filter-month').value;
         const selYear = document.getElementById('plan-filter-year').value;
@@ -1181,7 +1190,7 @@
             if (editingPlanIndex === index) cancelEditPlan();
             planItems.splice(index, 1);
             renderPlanning();
-            renderDashboard();
+            renderCockpit();
         }
     }
 
@@ -1236,10 +1245,10 @@
         document.getElementById('plan-amount').blur();
         document.getElementById('plan-description').blur();
         renderPlanning();
-        renderDashboard();
+        renderCockpit();
     });
 
-    // 4. HISTORY
+    // 5. HISTORY
     function renderHistory() {
         const selMonth = document.getElementById('hist-filter-month').value;
         const selYear = document.getElementById('hist-filter-year').value;
@@ -1293,7 +1302,7 @@
         renderHistory();
     }
 
-    // 5. SETTINGS
+    // 6. SETTINGS
     function renderSettings() {
         document.getElementById('app-version-badge').innerText = APP_VERSION;
         document.getElementById('settings-tx-count').innerText = transactions.length.toString();
@@ -1377,9 +1386,9 @@
                 localStorage.setItem('app_last_backup_date', new Date().getTime().toString());
                 dismissBackupReminder();
 
-                renderTransactions();
+                renderTransactionsQuickList();
                 renderPlanning();
-                renderDashboard();
+                renderCockpit();
                 renderHistory();
                 renderSettings();
                 alert('Backup restored successfully!');
@@ -1395,9 +1404,9 @@
     updateCategoryOptions('type', 'category');
     updateCategoryOptions('plan-type', 'plan-category');
     refreshDefaultDates();
-    renderTransactions();
+    renderTransactionsQuickList();
     renderPlanning();
-    renderDashboard();
+    renderCockpit();
     renderHistory();
 </script>
 </body>
