@@ -73,7 +73,6 @@
         .bar-value-simple { font-size: 12px; font-weight: 700; position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 100%; text-align: center; color: #1c1c1e; white-space: nowrap; }
         .bar-label-simple { font-size: 12px; font-weight: 600; color: #8e8e93; margin-top: 8px; text-align: center; }
 
-        /* Gráficos de Tendências Mensais */
         .trends-chart-wrapper { overflow-x: auto; padding-bottom: 8px; -webkit-overflow-scrolling: touch; }
         .trends-chart-track { display: inline-flex; align-items: flex-end; height: 185px; gap: 14px; padding: 28px 10px 0 10px; min-width: 100%; border-bottom: 2px solid #e5e5ea; box-sizing: border-box; }
         .trends-month-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; width: 78px; flex-shrink: 0; }
@@ -116,7 +115,6 @@
         .collapse-bar { background: #ffffff; color: #007aff; padding: 14px 16px; border-radius: 14px; font-weight: 600; font-size: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 12px; border: 1px solid #e5e5ea; user-select: none; }
         .collapse-bar.plan-theme { color: #5856d6; }
         
-        /* Destaque Especial para Quick Transactions no Topo do Cockpit */
         .collapse-bar.quick-tx-hero {
             background: linear-gradient(135deg, #007aff, #0051a8);
             color: #ffffff;
@@ -200,7 +198,6 @@
             </div>
         </div>
 
-        <!-- QUICK TRANSACTIONS NO TOPO COM DESTAQUE HERO -->
         <div class="collapse-bar quick-tx-hero" id="cockpit-tx-collapse-btn" onclick="toggleSection('cockpit-tx-collapse-btn', 'cockpit-tx-collapsible-area')">
             <div class="quick-tx-hero-left">
                 <div class="quick-tx-icon">⚡</div>
@@ -341,7 +338,6 @@
             </div>
         </div>
 
-        <!-- GRÁFICO 1: Monthly Cash Flow (Income vs Expenses) -->
         <div class="chart-container">
             <div class="chart-box-title">Monthly Cash Flow Trend</div>
             <div class="chart-box-sub">Income vs. Expenses ($ per month)</div>
@@ -354,7 +350,6 @@
             </div>
         </div>
 
-        <!-- GRÁFICO 2: Savings Rate Trend (%) -->
         <div class="chart-container">
             <div class="chart-box-title">Monthly Savings Rate Trend (%)</div>
             <div class="chart-box-sub">Percentage of income saved each month</div>
@@ -363,7 +358,6 @@
             </div>
         </div>
 
-        <!-- GRÁFICO 3: 3-Month Rolling Average -->
         <div class="chart-container">
             <div class="chart-box-title">3-Month Rolling Average vs. Plan</div>
             <div class="chart-box-sub" id="rolling-avg-subtitle">Average monthly spend in recent 3 active months</div>
@@ -450,7 +444,7 @@
     <div id="view-history" class="view">
         <h2>Transactions History</h2>
         
-        <div class="filter-section">
+        <div class="filter-section" style="flex-wrap: wrap;">
             <select id="hist-filter-month" onchange="renderHistory()">
                 <option value="ALL">All Months</option>
                 <option value="01">January</option>
@@ -467,6 +461,9 @@
                 <option value="12">December</option>
             </select>
             <select id="hist-filter-year" onchange="renderHistory()"></select>
+            <select id="hist-filter-category" onchange="renderHistory()">
+                <option value="ALL">All Categories</option>
+            </select>
             <button type="button" class="btn-filter-clear" onclick="clearHistoryFilters()">Show All</button>
         </div>
 
@@ -497,7 +494,7 @@
             </div>
             <div class="settings-item">
                 <span class="settings-label">Release Version</span>
-                <span class="settings-badge" id="app-version-badge">v7.3</span>
+                <span class="settings-badge" id="app-version-badge">v7.3.2</span>
             </div>
             <div class="settings-item">
                 <span class="settings-label">Architecture</span>
@@ -550,7 +547,7 @@
 </nav>
 
 <script>
-    const APP_VERSION = 'v7.3';
+    const APP_VERSION = 'v7.3.2';
 
     const PIE_COLORS = [
         '#007aff', '#ff3b30', '#34c759', '#ff9500', '#5856d6',
@@ -1350,7 +1347,10 @@
         }
 
         const sorted = [...transactions].map((t, originalIndex) => ({ ...t, originalIndex }));
-        sorted.sort((a, b) => new Date(b.date) - new Date(a.date));
+        sorted.sort((a, b) => {
+            if (a.date !== b.date) return b.date.localeCompare(a.date);
+            return b.originalIndex - a.originalIndex;
+        });
 
         sorted.slice(0, 15).forEach((t) => {
             const val = parseFloat(t.amount) || 0;
@@ -1556,9 +1556,37 @@
     });
 
     // 5. HISTORY
+    function populateHistoryCategoryFilter() {
+        const catSelect = document.getElementById('hist-filter-category');
+        if (!catSelect) return;
+
+        const currentVal = catSelect.value || 'ALL';
+        const allCats = new Set();
+
+        Object.values(CATEGORIES_BY_TYPE).forEach(groups => {
+            groups.forEach(g => g.options.forEach(opt => allCats.add(opt)));
+        });
+
+        transactions.forEach(t => {
+            if (t.category) allCats.add(t.category);
+        });
+
+        const sortedCats = Array.from(allCats).sort((a, b) => a.localeCompare(b));
+        let html = '<option value="ALL">All Categories</option>';
+        sortedCats.forEach(cat => {
+            html += `<option value="${cat}">${cat}</option>`;
+        });
+
+        catSelect.innerHTML = html;
+        catSelect.value = Array.from(catSelect.options).some(o => o.value === currentVal) ? currentVal : 'ALL';
+    }
+
     function renderHistory() {
+        populateHistoryCategoryFilter();
+
         const selMonth = document.getElementById('hist-filter-month').value;
         const selYear = document.getElementById('hist-filter-year').value;
+        const selCategory = document.getElementById('hist-filter-category').value;
         const tbody = document.getElementById('history-table-body');
         tbody.innerHTML = '';
 
@@ -1567,6 +1595,7 @@
             const [y, m] = t.date.split('-');
             if (y !== selYear) return false;
             if (selMonth !== 'ALL' && m !== selMonth) return false;
+            if (selCategory !== 'ALL' && t.category !== selCategory) return false;
             return true;
         });
 
@@ -1574,7 +1603,13 @@
             const originalIndex = transactions.indexOf(t);
             return { ...t, originalIndex };
         });
-        sortedWithIndex.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        sortedWithIndex.sort((a, b) => {
+            if (a.date !== b.date) {
+                return b.date.localeCompare(a.date);
+            }
+            return b.originalIndex - a.originalIndex;
+        });
 
         if (sortedWithIndex.length === 0) {
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#8e8e93;padding:20px;">No transactions found for this period.</td></tr>';
@@ -1606,6 +1641,7 @@
 
     function clearHistoryFilters() {
         document.getElementById('hist-filter-month').value = 'ALL';
+        document.getElementById('hist-filter-category').value = 'ALL';
         renderHistory();
     }
 
